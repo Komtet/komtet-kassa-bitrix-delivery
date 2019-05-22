@@ -10,7 +10,7 @@ tar:  ## Создать архив
 
 build: ## Создать контейнер
 	@cd docker_env/ && \
-	 docker run -d --name mysite -p 5666:80 -p 2222:22 -p 443:443 -p 8893:8893 -p 8894:8894 -v `pwd`/php:/home/bitrix/www -e BVAT_MEM=524288 -e TIMEZONE="Europe/Moscow" constb/bitrix-env && sudo chmod -R 777 php/
+	 docker run -d --name bitrix -p 5666:80 -p 2222:22 -p 443:443 -p 8893:8893 -p 8894:8894 -v `pwd`/php:/home/bitrix/www -e BVAT_MEM=524288 -e TIMEZONE="Europe/Moscow" constb/bitrix-env && sudo chmod -R 777 php/
 
 start: ## Запустить контейнер
 	@cd docker_env/ && docker start mysite
