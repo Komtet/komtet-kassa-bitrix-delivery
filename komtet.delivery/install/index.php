@@ -28,6 +28,9 @@ class komtet_delivery extends CModule
 
     public function DoInstall()
     {
+        if(!$this->DoInstallDB()){
+          return false;
+        }
         $this->DoInstallFiles();
         COption::SetOptionString($this->MODULE_ID, 'server_url', 'https://kassa.komtet.ru');
         COption::SetOptionInt($this->MODULE_ID, 'should_form', 1);
@@ -53,6 +56,7 @@ class komtet_delivery extends CModule
         COption::RemoveOption($this->MODULE_ID);
         UnRegisterModule($this->MODULE_ID);
 
+        $this->DoUninstallDB();
         $this->DoUninstallFiles();
         return true;
     }
@@ -65,5 +69,22 @@ class komtet_delivery extends CModule
                 sprintf('%s/bitrix/%s', $_SERVER["DOCUMENT_ROOT"], $key)
             );
         }
+    }
+
+    public function DoInstallDB()
+    {
+      global $DB, $DBType, $APPLICATION;
+      $errors = $DB->RunSQLBatch(sprintf('%s/db/%s/install.sql', $this->INSTALL_DIR, $DBType));
+      if (empty($errors)){
+        return true;
+      }
+      $APPLICATION->ThrowException(implode('', $errors));
+      return false;
+    }
+
+    public function DoUninstallDB()
+    {
+      global $DB, $DBType;
+      $DB->RunSQLBatch(sprintf('%s/db/%s/uninstall.sql', $this->INSTALL_DIR, $DBType));
     }
 }
