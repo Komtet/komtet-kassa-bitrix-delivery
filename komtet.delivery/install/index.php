@@ -33,7 +33,7 @@ class komtet_delivery extends CModule
         }
         $this->DoInstallFiles();
         COption::SetOptionString($this->MODULE_ID, 'server_url', 'https://kassa.komtet.ru');
-        COption::SetOptionInt($this->MODULE_ID, 'should_print', 1);
+        COption::SetOptionInt($this->MODULE_ID, 'should_form', 1);
         RegisterModule($this->MODULE_ID);
 
         return true;
