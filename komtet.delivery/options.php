@@ -26,7 +26,7 @@ if ($REQUEST_METHOD == 'POST' && check_bitrix_sessid()) {
     $data = array(
         'shop_id' => 'string',
         'secret_key' => 'string',
-        'should_print' => 'bool',
+        'should_form' => 'bool',
         'tax_system' => 'integer',
         'default_courier' => 'integer',
     );
@@ -77,11 +77,11 @@ $form->AddEditField(
 );
 
 $form->AddCheckBoxField(
-    'SHOULD_PRINT',
+    'SHOULD_FORM',
     GetMessage('KOMTETDELIVERY_OPTIONS_SHOULD_FORM'),
     true,
-    COption::GetOptionInt($moduleId, 'should_print'),
-    COption::GetOptionInt($moduleId, 'should_print') == 1
+    COption::GetOptionInt($moduleId, 'should_form'),
+    COption::GetOptionInt($moduleId, 'should_form') == 1
 );
 
 $form->AddDropDownField(
