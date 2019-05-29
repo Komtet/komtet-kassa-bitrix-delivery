@@ -28,6 +28,7 @@ class komtet_delivery extends CModule
 
     public function DoInstall()
     {
+        global $APPLICATION;
         if(!$this->DoInstallDB()){
           return false;
         }
@@ -35,6 +36,11 @@ class komtet_delivery extends CModule
         COption::SetOptionString($this->MODULE_ID, 'server_url', 'https://kassa.komtet.ru');
         COption::SetOptionInt($this->MODULE_ID, 'should_form', 1);
         RegisterModule($this->MODULE_ID);
+
+        $saleModuleInfo = CModule::CreateModuleObject('sale');
+        // RegisterModuleDependences('sale', 'OnShipmentAllowDelivery', $this->MODULE_ID, 'KomtetDelivery', 'handleSalePayOrder');
+
+        $APPLICATION->IncludeAdminFile(GetMessage("INSTALL_KOMTETDELIVERY"), $_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/komtet.delivery/install/step1.php");
 
         return true;
     }
@@ -53,11 +59,14 @@ class komtet_delivery extends CModule
 
     public function DoUninstall()
     {
+        global $APPLICATION;
         COption::RemoveOption($this->MODULE_ID);
-        UnRegisterModule($this->MODULE_ID);
+        // UnRegisterModuleDependences("sale", "OnShipmentAllowDelivery", $this->MODULE_ID, "KomtetDelivery", "handleSalePayOrder");
 
+        UnRegisterModule($this->MODULE_ID);
         $this->DoUninstallDB();
         $this->DoUninstallFiles();
+        $APPLICATION->IncludeAdminFile(GetMessage("UNINSTALL_KOMTETDELIVERY"), $_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/komtet.delivery/install/unstep1.php");
         return true;
     }
 
@@ -87,4 +96,5 @@ class komtet_delivery extends CModule
       global $DB, $DBType;
       $DB->RunSQLBatch(sprintf('%s/db/%s/uninstall.sql', $this->INSTALL_DIR, $DBType));
     }
+
 }
