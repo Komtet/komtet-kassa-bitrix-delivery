@@ -178,7 +178,7 @@ class komtet_delivery extends CModule
                                           "SORT"=> "100" ,
                                           "PROPS_GROUP_ID"=> $groupID,
                                           "CODE"=> "kkd_time_end",
-                                          "DEFAULT_VALUE"=> "24:00",
+                                          "DEFAULT_VALUE"=> "23:00",
                                           "SETTINGS"=>array(
                                               "MINLENGTH"=>"5",
                                               "MAXLENGTH"=>"5",
