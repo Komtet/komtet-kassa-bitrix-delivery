@@ -30,12 +30,10 @@ make start
 * По ссылке https://www.1c-bitrix.ru/bsm_register.php получить тестовый лицензионный ключ
 * Добавить тестовый лицензионный ключ на странице "Обновление платформы" http://bitrix.localhost.ru/bitrix/admin/update_system.php?lang=ru
 
-* Собрать архив с модулем (Система автоматически создаст архив в папке 'modules')
+* Собрать модуль (Система автоматически создаст архив в папке 'modules')
 ```sh
-make tar
+make update
 ```
-
-* Распаковать архив из Bitrix CMS: http://bitrix.localhost.ru/bitrix/admin/fileman_admin.php?PAGEN_1=3&SIZEN_1=20&lang=ru&path=%2Fbitrix%2Fmodules&site=s1
 
 * Утсновить модуль из Bitrix CMS: http://bitrix.localhost.ru/bitrix/admin/partner_modules.php?lang=ru
 
@@ -55,7 +53,7 @@ make start
 make stop
 ```
 
-* Собрать архив
+* Собрать модуль
 ```sh
-make tar
+make update
 ```
