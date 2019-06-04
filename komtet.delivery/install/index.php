@@ -194,6 +194,7 @@ class komtet_delivery extends CModule
             }
             return true;
         }
+        return false;
     }
 
     public function DoUninstallFields()
