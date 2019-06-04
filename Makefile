@@ -21,8 +21,5 @@ start: ## Запустить контейнер
 stop: ## Остановить контейнер
 	@cd docker_env/ && docker stop bitrix
 
-post: ## тестовая url
-	@curl -X POST http://bitrix.localhost.ru/done_order/3/
-
 .PHONY: help update build start stop
 .DEFAULT_GOAL := help
