@@ -185,7 +185,7 @@ class KomtetDeliveryD7
         try {
             $response = $this->manager->createOrder($orderDelivery);
         } catch (SdkException $e) {
-            error_log(sprintf('Failed to send order: %s', $e->getMessage()));
+            error_log(sprintf('Ошибка создания заказа: %s', $e->getMessage()));
         } finally {
             KomtetDeliveryReportsTable::Update($kOrderID,
                                                array(
@@ -246,7 +246,7 @@ class KomtetDeliveryD7
     private function optionsValidate($options) {
       foreach (array('key', 'secret', 'tax_system') as $key) {
           if (empty($options[$key])) {
-              error_log(sprintf('Option "%s" for module "komtet.delivery" is required', $key));
+              error_log(sprintf('Настройка "%s" для модуля "komtet.delivery" не найдена', $key));
               return false;
           }
         return true;
