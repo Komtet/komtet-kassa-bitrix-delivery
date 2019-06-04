@@ -169,9 +169,8 @@ class KomtetDeliveryD7
         if (!$this->defaultCourier == 0) {
             $orderDelivery->setCourierId($this->defaultCourier);
         }
-
-        if ($order->getField['USER_DESCRIPTION']) {
-            $orderDelivery->setDescription($order->getField['USER_DESCRIPTION']);
+        if ($order->getField('USER_DESCRIPTION')) {
+            $orderDelivery->setDescription($order->getField('USER_DESCRIPTION'));
         }
 
         $scheme = array_key_exists('HTTPS', $_SERVER) && strtolower($_SERVER['HTTPS']) !== 'off' ? 'https' : 'http';
