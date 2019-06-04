@@ -82,6 +82,18 @@ class KomtetDeliveryD7
 
     public function createOrder($orderId)
     {
+
+        $kOrderID = KomtetDeliveryReportsTable::getRow(array(
+            'select' => array('*'),
+            'filter' => array('order_id' => $orderId)
+        ));
+
+        if (!$kOrderID) {
+          $kOrderID = KomtetDeliveryReportsTable::add(['order_id' => $orderId])->getId();
+        } else {
+          $kOrderID = $kOrderID['id'];
+        }
+
         if (!$this->shouldForm ) {
             error_log(sprintf('[Order - %s] Заказ не создан, флаг генерации не установлен', $orderId));
             return false;
@@ -104,13 +116,11 @@ class KomtetDeliveryD7
         $userId = $order->getPersonTypeId();
         $rsUser = UserTable::getById($userId)->fetch();
 
-        if (!$this->customFieldsValidate($customFieldList)) {
-            error_log(sprintf('[Order - %s] Ошибка заполенния дополнительных полей', $orderId));
-            return false;
-        }
-
-        if (!$this->userValidate($rsUser)) {
-            error_log(sprintf('[Order - %s] Ошибка валидации пользователя', $orderId));
+        if (!$this->validation($orderId, $customFieldList, $rsUser)) {
+            KomtetDeliveryReportsTable::update($kOrderID,
+                                               array(
+                                                  "request" => 'validation error'
+                                               ));
             return false;
         }
 
@@ -174,9 +184,16 @@ class KomtetDeliveryD7
         $orderDelivery->setDeliveryTime($startDate, $endDate);
 
         try {
-            $this->manager->createOrder($orderDelivery);
+            $response = $this->manager->createOrder($orderDelivery);
         } catch (SdkException $e) {
             error_log(sprintf('Failed to send order: %s', $e->getMessage()));
+        } finally {
+            KomtetDeliveryReportsTable::Update($kOrderID,
+                                               array(
+                                                  "request" => json_encode($orderDelivery->asArray()),
+                                                  "response" => json_encode($response),
+                                                  "kk_id" => $response['id'] !== null ? $response['id'] : null
+                                               ));
         }
     }
 
@@ -202,6 +219,19 @@ class KomtetDeliveryD7
             }
             $order->save();
         }
+    }
+
+    private function validation($orderId, $customFieldList, $rsUser) {
+      if (!$this->customFieldsValidate($customFieldList)) {
+          error_log(sprintf('[Order - %s] Ошибка заполенния дополнительных полей', $orderId));
+          return false;
+      }
+
+      if (!$this->userValidate($rsUser)) {
+          error_log(sprintf('[Order - %s] Ошибка валидации пользователя', $orderId));
+          return false;
+      }
+      return true;
     }
 
     private function customFieldsValidate($customFieldList) {

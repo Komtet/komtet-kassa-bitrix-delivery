@@ -22,7 +22,7 @@ class KomtetDeliveryReportsTable extends Entity\DataManager
                 'column_name' => 'order_id'
             )),
             new Entity\IntegerField('kk_id', array(
-                'required' => true,
+                'required' => false,
                 'column_name' => 'kk_id'
             )),
             new Entity\StringField('request', array(
