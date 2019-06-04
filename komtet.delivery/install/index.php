@@ -26,12 +26,22 @@ class komtet_delivery extends CModule
             $this->MODULE_VERSION = $arModuleVersion["VERSION"];
             $this->MODULE_VERSION_DATE = $arModuleVersion["VERSION_DATE"];
         }
+
+        $this->FILES = array(
+            "admin" => array(
+                "FROM" => sprintf('%s/%s', $this->INSTALL_DIR, "admin"),
+                "TO" => sprintf('%s/bitrix/%s', $_SERVER["DOCUMENT_ROOT"], 'admin')
+            ),
+            "tools" => array(
+                "FROM" => sprintf('%s/%s', $this->INSTALL_DIR, "tools"),
+                "TO" => sprintf('%s/%s', $_SERVER["DOCUMENT_ROOT"], 'komtet.delivery')
+            )
+        );
     }
 
     public function DoInstall()
     {
         global $APPLICATION;
-
         if (!IsModuleInstalled("sale")) {
             echo(CAdminMessage::ShowMessage(Array("TYPE"=>"ERROR",
                                                   "MESSAGE" =>GetMessage("MOD_INST_ERR"),
@@ -55,8 +65,18 @@ class komtet_delivery extends CModule
             COption::SetOptionString($this->MODULE_ID, 'server_url', 'https://kassa.komtet.ru');
             COption::SetOptionInt($this->MODULE_ID, 'should_form', 1);
             RegisterModule($this->MODULE_ID);
-
             $saleModuleInfo = CModule::CreateModuleObject('sale');
+            RegisterModuleDependences('sale', 'OnShipmentAllowDelivery', $this->MODULE_ID, 'KomtetDelivery', 'handleSalePayOrder');
+
+            $callback_url = array(
+                'CONDITION' => '#^/done_order/([0-9a-zA-Z-]+)/#',
+                'RULE' => 'ORDER_ID=$1',
+                'ID' => 'bitrix:komtet.delivery',
+                'PATH' => sprintf('/%s/%s', 'komtet.delivery', 'komtet_delivery_done_order.php'),
+                'SORT' => 100);
+
+            CUrlRewriter::Add($callback_url);
+
         }
         else {
           return false;
@@ -65,10 +85,10 @@ class komtet_delivery extends CModule
 
     public function DoInstallFiles()
     {
-        foreach (array('admin', 'tools') as $key) {
+        foreach ($this->FILES as $file) {
             CopyDirFiles(
-                sprintf('%s/%s', $this->INSTALL_DIR, $key),
-                sprintf('%s/bitrix/%s', $_SERVER["DOCUMENT_ROOT"], $key),
+                $file["FROM"],
+                $file["TO"],
                 true,
                 true
             );
@@ -83,19 +103,22 @@ class komtet_delivery extends CModule
             COption::RemoveOption($this->MODULE_ID);
 
             UnRegisterModule($this->MODULE_ID);
+            UnRegisterModuleDependences("sale", "OnShipmentAllowDelivery", $this->MODULE_ID, "KomtetDelivery", "handleSalePayOrder");
             $this->DoUninstallDB();
             $this->DoUninstallFiles();
+            CUrlRewriter::Delete(array('ID' => 'bitrix:komtet.delivery'));
         }
     }
 
     public function DoUninstallFiles()
     {
-        foreach (array('admin', 'tools') as $key) {
+        foreach ($this->FILES as $file) {
             DeleteDirFiles(
-                sprintf('%s/%s', $this->INSTALL_DIR, $key),
-                sprintf('%s/bitrix/%s', $_SERVER["DOCUMENT_ROOT"], $key)
+                $file["FROM"],
+                $file["TO"]
             );
         }
+        rmdir($this->FILES["tools"]["TO"]);
     }
 
     public function DoInstallDB()
@@ -120,6 +143,26 @@ class komtet_delivery extends CModule
         global $APPLICATION;
         if(CModule::IncludeModule("sale"))
         {
+            $new_status = array(
+                    'ID' => 'KD',
+                    'SORT' => 100,
+                    'TYPE' => 'D',
+                    'COLOR' => '#00FF00',
+                    'LANG' => array(
+                    array(
+                      "LID"=>'ru',
+                      "NAME"=>"Доставлен",
+                      "DESCRIPTION"=>"Статус выставляется приложением КОМТЕТ Касса Курьер"),
+                    array(
+                      "LID"=>'en',
+                      "NAME"=>"Delivered"))
+            );
+
+            $arStatus = CSaleStatus::GetByID($new_status['ID']);
+            if (!$arStatus) {
+                    CSaleStatus::Add($new_status);
+            }
+
             $personTypeList = CSalePersonType::GetList(array(),
                                                        array(),
                                                        false,
@@ -142,47 +185,47 @@ class komtet_delivery extends CModule
                 $arFields = array(
                       "ADDRESS" => array(
                                           "PERSON_TYPE_ID" => $personType["ID"],
-                                          "NAME"=> "Адрес доставки",
-                                          "TYPE"=> "TEXT",
-                                          "REQUIED"=> "Y" ,
-                                          "SORT"=> "100" ,
-                                          "PROPS_GROUP_ID"=> $groupID,
-                                          "CODE"=> "kkd_address"),
+                                          "NAME" => "Адрес доставки",
+                                          "TYPE" => "TEXT",
+                                          "REQUIED" => "Y" ,
+                                          "SORT" => "100" ,
+                                          "PROPS_GROUP_ID" => $groupID,
+                                          "CODE" => "kkd_address"),
                       "DATE" => array(
                                           "PERSON_TYPE_ID" => $personType["ID"],
-                                          "NAME"=> "Дата доставки",
-                                          "TYPE"=> "DATE",
-                                          "REQUIED"=> "Y" ,
-                                          "SORT"=> "100" ,
-                                          "PROPS_GROUP_ID"=> $groupID,
-                                          "CODE"=> "kkd_date"),
+                                          "NAME" => "Дата доставки",
+                                          "TYPE" => "DATE",
+                                          "REQUIED" => "Y" ,
+                                          "SORT" => "100" ,
+                                          "PROPS_GROUP_ID" => $groupID,
+                                          "CODE" => "kkd_date"),
                       "TIME_START" => array(
                                           "PERSON_TYPE_ID" => $personType["ID"],
-                                          "NAME"=> "Время доставки от",
-                                          "TYPE"=> "TEXT",
-                                          "REQUIED"=> "Y" ,
-                                          "SORT"=> "100" ,
-                                          "PROPS_GROUP_ID"=> $groupID,
-                                          "CODE"=> "kkd_time_start",
-                                          "DEFAULT_VALUE"=> "00:00",
-                                          "SETTINGS"=>array(
-                                              "MINLENGTH"=>"5",
-                                              "MAXLENGTH"=>"5",
-                                              "PATTERN"=>"([01]?[0-9]|2[0-3]):[0-5][0-9]"
+                                          "NAME" => "Время доставки от",
+                                          "TYPE" => "TEXT",
+                                          "REQUIED" => "Y" ,
+                                          "SORT" => "100" ,
+                                          "PROPS_GROUP_ID" => $groupID,
+                                          "CODE" => "kkd_time_start",
+                                          "DEFAULT_VALUE" => "00:00",
+                                          "SETTINGS"=> array(
+                                              "MINLENGTH" => "5",
+                                              "MAXLENGTH" => "5",
+                                              "PATTERN" => "([01]?[0-9]|2[0-3]):[0-5][0-9]"
                                           )),
                       "TIME_FINISH" => array(
                                           "PERSON_TYPE_ID" => $personType["ID"],
-                                          "NAME"=> "Время доставки до",
-                                          "TYPE"=> "TEXT",
-                                          "REQUIED"=> "Y" ,
-                                          "SORT"=> "100" ,
-                                          "PROPS_GROUP_ID"=> $groupID,
-                                          "CODE"=> "kkd_time_end",
-                                          "DEFAULT_VALUE"=> "23:00",
-                                          "SETTINGS"=>array(
-                                              "MINLENGTH"=>"5",
-                                              "MAXLENGTH"=>"5",
-                                              "PATTERN"=>"([01]?[0-9]|2[0-3]):[0-5][0-9]"
+                                          "NAME" => "Время доставки до",
+                                          "TYPE" => "TEXT",
+                                          "REQUIED" => "Y" ,
+                                          "SORT" => "100" ,
+                                          "PROPS_GROUP_ID" => $groupID,
+                                          "CODE" => "kkd_time_end",
+                                          "DEFAULT_VALUE" => "23:00",
+                                          "SETTINGS" =>array(
+                                              "MINLENGTH" =>"5",
+                                              "MAXLENGTH" =>"5",
+                                              "PATTERN" => "([01]?[0-9]|2[0-3]):[0-5][0-9]"
                                           )),
                   );
                   foreach ($arFields as $arField) {
