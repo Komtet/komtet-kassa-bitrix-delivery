@@ -13,6 +13,4 @@ RUN curl http://repos.1c-bitrix.ru/yum/bitrix-env.sh > /tmp/bitrix-env.sh && \
     yum install -y php-xml && \
     yum clean all
 
-RUN yum install php-curl
 RUN mv /etc/php.d/20-curl.ini.disabled /etc/php.d/20-curl.ini
-RUN /etc/init.d/httpd restart
