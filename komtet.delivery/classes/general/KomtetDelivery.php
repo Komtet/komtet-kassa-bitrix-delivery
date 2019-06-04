@@ -204,7 +204,7 @@ class KomtetDeliveryD7
             try {
                 CSaleOrder::PayOrder($orderId, $this->payStatus);
                 CSaleOrder::StatusOrder($orderId, $this->orderStatus);
-                $order->setField("ADDITIONAL_INFO", Date(CDatabase::DateFormatToPHP(CLang::GetDateFormat("FULL", LANG))));
+                $order->setField("ADDITIONAL_INFO", Date(CDatabase::DateFormatToPHP(CLang::GetDateFormat("SHORT", LANG))));
             } catch (Exception $e) {
                 echo($e->getMessage());
             }

@@ -201,7 +201,6 @@ if (COption::GetOptionString($moduleId, 'shop_id') and
   }
 }
 
-
 $form->Buttons(array(
     'disabled' => false,
     'back_url' => (empty($back_url) ? 'settings.php?lang=' . LANG : $back_url)
