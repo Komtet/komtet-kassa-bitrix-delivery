@@ -17,7 +17,7 @@ class komtet_delivery extends CModule
         $this->MODULE_NAME = GetMessage('KOMTETDELIVERY_MODULE_NAME');
         $this->MODULE_DESCRIPTION = GetMessage('KOMTETDELIVERY_MODULE_DESCRIPTION');
         $this->PARTNER_NAME = GetMessage('KOMTETDELIVERY_PARTNER_NAME');
-        $this->PARTNER_URI = "https://kassa.komtet.ru";
+        $this->PARTNER_URI = GetMessage('KOMTETDELIVERY_MODULE_URL');
         $this->INSTALL_DIR = dirname(__file__);
         $this->GROUP_NAME = GetMessage('MOD_GROUP_NAME');
         $arModuleVersion = array();
@@ -39,28 +39,31 @@ class komtet_delivery extends CModule
                                                   "HTML"=>true)));
             return false;
         }
-        if (!IsModuleInstalled($this->MODULE_ID))
-        {
-            if (!$this->DoInstallDB() or !$this->DoInstallFields()){
-                if($ex = $APPLICATION->GetException()) {
-                    echo(CAdminMessage::ShowMessage(Array("TYPE"=>"ERROR",
-                                                          "MESSAGE" =>GetMessage("MOD_INST_ERR"),
-                                                          "DETAILS"=>$ex->GetString(),
-                                                          "HTML"=>true)));
-                }
-                return false;
+
+        if (IsModuleInstalled($this->MODULE_ID)) {
+            echo(CAdminMessage::ShowMessage(Array("TYPE"=>"ERROR",
+                                                  "MESSAGE" =>GetMessage("MOD_INST_ERR"),
+                                                  "DETAILS"=>GetMessage("MOD_ERR_DELIVERY_IS_INSTALLED"),
+                                                  "HTML"=>true)));
+            return false;
+        }
+
+        if (!$this->DoInstallDB() or !$this->DoInstallFields()){
+            if($ex = $APPLICATION->GetException()) {
+                echo(CAdminMessage::ShowMessage(Array("TYPE"=>"ERROR",
+                                                      "MESSAGE" =>GetMessage("MOD_INST_ERR"),
+                                                      "DETAILS"=>$ex->GetString(),
+                                                      "HTML"=>true)));
             }
-
-            $this->DoInstallFiles();
-            COption::SetOptionString($this->MODULE_ID, 'server_url', 'https://kassa.komtet.ru');
-            COption::SetOptionInt($this->MODULE_ID, 'should_form', 1);
-            RegisterModule($this->MODULE_ID);
-
-            $saleModuleInfo = CModule::CreateModuleObject('sale');
+            return false;
         }
-        else {
-          return false;
-        }
+
+        $this->DoInstallFiles();
+        COption::SetOptionString($this->MODULE_ID, 'server_url', GetMessage('KOMTETDELIVERY_MODULE_URL'));
+        COption::SetOptionInt($this->MODULE_ID, 'should_form', 1);
+        RegisterModule($this->MODULE_ID);
+
+        $saleModuleInfo = CModule::CreateModuleObject('sale');
     }
 
     public function DoInstallFiles()
