@@ -42,6 +42,7 @@ class komtet_delivery extends CModule
     public function DoInstall()
     {
         global $APPLICATION;
+
         if (!IsModuleInstalled("sale")) {
             echo(CAdminMessage::ShowMessage(Array("TYPE"=>"ERROR",
                                                   "MESSAGE" =>GetMessage("MOD_INST_ERR"),
@@ -127,6 +128,7 @@ class komtet_delivery extends CModule
     public function DoInstallDB()
     {
         global $DB, $DBType, $APPLICATION;
+
         $errors = $DB->RunSQLBatch(sprintf('%s/db/%s/install.sql', $this->INSTALL_DIR, $DBType));
         if (empty($errors)){
           return true;
