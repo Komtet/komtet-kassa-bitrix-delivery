@@ -131,29 +131,28 @@ class KomtetDeliveryD7
                 $itemVatRate = Vat::RATE_NO;
             }
 
-            $orderPosition = new OrderPosition(['oid' => $position->getField('ID'),
-                                                'name' => $position->getField('NAME'),
-                                                'price' => round($position->getPrice(),2),
-                                                'quantity' => $position->getQuantity(),
-                                                'total'=> round($position->getFinalPrice(),2),
-                                                'vat' => $itemVatRate,
-                                                'measure_name' => $position->getField('MEASURE_NAME'),
-                                               ]);
-
-            $orderDelivery->addPosition($orderPosition);
+            $orderDelivery->addPosition(new OrderPosition(['oid' => $position->getField('ID'),
+                                                           'name' => $position->getField('NAME'),
+                                                           'price' => round($position->getPrice(),2),
+                                                           'quantity' => $position->getQuantity(),
+                                                           'total'=> round($position->getFinalPrice(),2),
+                                                           'vat' => $itemVatRate,
+                                                           'measure_name' => $position->getField('MEASURE_NAME'),
+                                               ]));
         }
 
-        if (!empty($order->getDeliveryIdList()))
-        {
-            $orderPosition = new OrderPosition(['oid' => $order->getDeliveryIdList()[0],
-                                                'name' => "Доставка",
-                                                'price' => round($order->getField("PRICE_DELIVERY"),2),
-                                                'quantity' => 1,
-                                                'total'=> round($order->getField("PRICE_DELIVERY"),2),
-                                                'vat' => Vat::RATE_NO,
-                                                'measure_name' => "шт",
-                                               ]);
-            $orderDelivery->addPosition($orderPosition);
+        $shipmentCollection = $order->getShipmentCollection();
+        foreach ($shipmentCollection as $shipment) {
+            if ($shipment->getPrice() > 0.0) {
+                $orderDelivery->addPosition(new OrderPosition(['oid' => $shipment->getId(),
+                                                               'name' => mb_convert_encoding($shipment->getField('DELIVERY_NAME'), 'UTF-8', LANG_CHARSET),
+                                                               'price' => round($shipment->getPrice(), 2),
+                                                               'quantity' => 1,
+                                                               'total'=> round($shipment->getPrice(), 2),
+                                                               'vat' => strval(round(floatval($shipment->getVatRate()) * 100, 2)),
+                                                               'measure_name' => "шт",
+                                                   ]));
+            }
         }
 
 
