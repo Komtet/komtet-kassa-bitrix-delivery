@@ -202,15 +202,13 @@ class KomtetDeliveryD7
         {
           return false;
         }
-        
+
         $order = OrderTable::load($orderId);
-        try {
-            CSaleOrder::PayOrder($orderId, $this->payStatus);
-            CSaleOrder::StatusOrder($orderId, $this->orderStatus);
-            $order->setField("ADDITIONAL_INFO", Date(CDatabase::DateFormatToPHP(CLang::GetDateFormat("SHORT", LANG))));
-        } catch (Exception $e) {
-            echo($e->getMessage());
-        }
+
+        CSaleOrder::PayOrder($orderId, $this->payStatus);
+        CSaleOrder::StatusOrder($orderId, $this->orderStatus);
+        $order->setField("ADDITIONAL_INFO", Date(CDatabase::DateFormatToPHP(CLang::GetDateFormat("SHORT", LANG))));
+
         $shipments = $order->getShipmentCollection();
         foreach ($shipments as $shipment)
         {
