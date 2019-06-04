@@ -198,26 +198,28 @@ class KomtetDeliveryD7
 
     public function doneOrder($orderId)
     {
-        if(CModule::IncludeModule("sale"))
+        if(!CModule::IncludeModule("sale"))
         {
-            $order = OrderTable::load($orderId);
-            try {
-                CSaleOrder::PayOrder($orderId, $this->payStatus);
-                CSaleOrder::StatusOrder($orderId, $this->orderStatus);
-                $order->setField("ADDITIONAL_INFO", Date(CDatabase::DateFormatToPHP(CLang::GetDateFormat("SHORT", LANG))));
-            } catch (Exception $e) {
-                echo($e->getMessage());
-            }
-            $shipments = $order->getShipmentCollection();
-            foreach ($shipments as $shipment)
-            {
-                if(!$shipment->isSystem())
-                {
-                    $shipment->setField('STATUS_ID', $this->deliveryStatus);
-                }
-            }
-            $order->save();
+          return false;
         }
+        
+        $order = OrderTable::load($orderId);
+        try {
+            CSaleOrder::PayOrder($orderId, $this->payStatus);
+            CSaleOrder::StatusOrder($orderId, $this->orderStatus);
+            $order->setField("ADDITIONAL_INFO", Date(CDatabase::DateFormatToPHP(CLang::GetDateFormat("SHORT", LANG))));
+        } catch (Exception $e) {
+            echo($e->getMessage());
+        }
+        $shipments = $order->getShipmentCollection();
+        foreach ($shipments as $shipment)
+        {
+            if(!$shipment->isSystem())
+            {
+                $shipment->setField('STATUS_ID', $this->deliveryStatus);
+            }
+        }
+        $order->save();
     }
 
     private function validation($orderId, $customFieldList, $rsUser) {
