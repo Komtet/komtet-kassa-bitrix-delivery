@@ -121,85 +121,86 @@ class komtet_delivery extends CModule
     public function DoInstallFields()
     {
         global $APPLICATION;
-        if(CModule::IncludeModule("sale"))
+        if(!CModule::IncludeModule("sale"))
         {
-            $personTypeList = CSalePersonType::GetList(array(),
-                                                       array(),
-                                                       false,
-                                                       false,
-                                                       array());
-
-            if (intval($personTypeList->SelectedRowsCount()) === 0) {
-                $APPLICATION->ThrowException(GetMessage("MOD_ERR_PERSON_NOT_FOUND"));
-                return false;
-            }
-
-            while ($personType = $personTypeList->Fetch())
-            {
-                $groupID = CSaleOrderPropsGroup::Add(array(
-                                                        "PERSON_TYPE_ID" => $personType["ID"],
-                                                        "NAME" => $this->GROUP_NAME,
-                                                        "SORT"=> "100",
-                                                    ));
-
-                $arFields = array(
-                      "ADDRESS" => array(
-                                          "PERSON_TYPE_ID" => $personType["ID"],
-                                          "NAME"=> "Адрес доставки",
-                                          "TYPE"=> "TEXT",
-                                          "REQUIED"=> "Y" ,
-                                          "SORT"=> "100" ,
-                                          "PROPS_GROUP_ID"=> $groupID,
-                                          "CODE"=> "kkd_address"),
-                      "DATE" => array(
-                                          "PERSON_TYPE_ID" => $personType["ID"],
-                                          "NAME"=> "Дата доставки",
-                                          "TYPE"=> "DATE",
-                                          "REQUIED"=> "Y" ,
-                                          "SORT"=> "100" ,
-                                          "PROPS_GROUP_ID"=> $groupID,
-                                          "CODE"=> "kkd_date"),
-                      "TIME_START" => array(
-                                          "PERSON_TYPE_ID" => $personType["ID"],
-                                          "NAME"=> "Время доставки от",
-                                          "TYPE"=> "TEXT",
-                                          "REQUIED"=> "Y" ,
-                                          "SORT"=> "100" ,
-                                          "PROPS_GROUP_ID"=> $groupID,
-                                          "CODE"=> "kkd_time_start",
-                                          "DEFAULT_VALUE"=> "00:00",
-                                          "SETTINGS"=>array(
-                                              "MINLENGTH"=>"5",
-                                              "MAXLENGTH"=>"5",
-                                              "PATTERN"=>"([01]?[0-9]|2[0-3]):[0-5][0-9]"
-                                          )),
-                      "TIME_FINISH" => array(
-                                          "PERSON_TYPE_ID" => $personType["ID"],
-                                          "NAME"=> "Время доставки до",
-                                          "TYPE"=> "TEXT",
-                                          "REQUIED"=> "Y" ,
-                                          "SORT"=> "100" ,
-                                          "PROPS_GROUP_ID"=> $groupID,
-                                          "CODE"=> "kkd_time_end",
-                                          "DEFAULT_VALUE"=> "23:00",
-                                          "SETTINGS"=>array(
-                                              "MINLENGTH"=>"5",
-                                              "MAXLENGTH"=>"5",
-                                              "PATTERN"=>"([01]?[0-9]|2[0-3]):[0-5][0-9]"
-                                          )),
-                  );
-                  foreach ($arFields as $arField) {
-                      CSaleOrderProps::Add($arField);
-                  }
-            }
-            return true;
+            return false;
         }
-        return false;
+
+        $personTypeList = CSalePersonType::GetList(array(),
+                                                   array(),
+                                                   false,
+                                                   false,
+                                                   array());
+
+        if (intval($personTypeList->SelectedRowsCount()) === 0) {
+            $APPLICATION->ThrowException(GetMessage("MOD_ERR_PERSON_NOT_FOUND"));
+            return false;
+        }
+
+        while ($personType = $personTypeList->Fetch())
+        {
+            $groupID = CSaleOrderPropsGroup::Add(array(
+                                                    "PERSON_TYPE_ID" => $personType["ID"],
+                                                    "NAME" => $this->GROUP_NAME,
+                                                    "SORT"=> "100",
+                                                ));
+
+            $arFields = array(
+                  "ADDRESS" => array(
+                                      "PERSON_TYPE_ID" => $personType["ID"],
+                                      "NAME"=> "Адрес доставки",
+                                      "TYPE"=> "TEXT",
+                                      "REQUIED"=> "Y" ,
+                                      "SORT"=> "100" ,
+                                      "PROPS_GROUP_ID"=> $groupID,
+                                      "CODE"=> "kkd_address"),
+                  "DATE" => array(
+                                      "PERSON_TYPE_ID" => $personType["ID"],
+                                      "NAME"=> "Дата доставки",
+                                      "TYPE"=> "DATE",
+                                      "REQUIED"=> "Y" ,
+                                      "SORT"=> "100" ,
+                                      "PROPS_GROUP_ID"=> $groupID,
+                                      "CODE"=> "kkd_date"),
+                  "TIME_START" => array(
+                                      "PERSON_TYPE_ID" => $personType["ID"],
+                                      "NAME"=> "Время доставки от",
+                                      "TYPE"=> "TEXT",
+                                      "REQUIED"=> "Y" ,
+                                      "SORT"=> "100" ,
+                                      "PROPS_GROUP_ID"=> $groupID,
+                                      "CODE"=> "kkd_time_start",
+                                      "DEFAULT_VALUE"=> "00:00",
+                                      "SETTINGS"=>array(
+                                          "MINLENGTH"=>"5",
+                                          "MAXLENGTH"=>"5",
+                                          "PATTERN"=>"([01]?[0-9]|2[0-3]):[0-5][0-9]"
+                                      )),
+                  "TIME_FINISH" => array(
+                                      "PERSON_TYPE_ID" => $personType["ID"],
+                                      "NAME"=> "Время доставки до",
+                                      "TYPE"=> "TEXT",
+                                      "REQUIED"=> "Y" ,
+                                      "SORT"=> "100" ,
+                                      "PROPS_GROUP_ID"=> $groupID,
+                                      "CODE"=> "kkd_time_end",
+                                      "DEFAULT_VALUE"=> "23:00",
+                                      "SETTINGS"=>array(
+                                          "MINLENGTH"=>"5",
+                                          "MAXLENGTH"=>"5",
+                                          "PATTERN"=>"([01]?[0-9]|2[0-3]):[0-5][0-9]"
+                                      )),
+            );
+            foreach ($arFields as $arField) {
+                CSaleOrderProps::Add($arField);
+            }
+        }
+        return true;
     }
 
     public function DoUninstallFields()
     {
-        if(CModule::IncludeModule("sale"))
+        if(!CModule::IncludeModule("sale"))
   			{
             $groupList= CSaleOrderPropsGroup::GetList(array(),
                                                       array("NAME" => $this->GROUP_NAME),
