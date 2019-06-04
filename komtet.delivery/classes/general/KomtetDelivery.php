@@ -183,28 +183,26 @@ class KomtetDeliveryD7
 
     public function doneOrder($orderId)
     {
-        if(!CModule::IncludeModule("sale"))
+        if(CModule::IncludeModule("sale"))
         {
-            return false;
-        }
-        $order = OrderTable::load($orderId);
-        try {
-            CSaleOrder::PayOrder($orderId, $this->payStatus);
-            CSaleOrder::StatusOrder($orderId, $this->orderStatus);
-            $order->setField("ADDITIONAL_INFO", Date(CDatabase::DateFormatToPHP(CLang::GetDateFormat("FULL", LANG))));
-        } catch (Exception $e) {
-            echo($e->getMessage());
-        }
-        $shipments = $order->getShipmentCollection();
-        foreach ($shipments as $shipment)
-        {
-            if(!$shipment->isSystem())
-            {
-                $shipment->setField('STATUS_ID', $this->deliveryStatus);
+            $order = OrderTable::load($orderId);
+            try {
+                CSaleOrder::PayOrder($orderId, $this->payStatus);
+                CSaleOrder::StatusOrder($orderId, $this->orderStatus);
+                $order->setField("ADDITIONAL_INFO", Date(CDatabase::DateFormatToPHP(CLang::GetDateFormat("FULL", LANG))));
+            } catch (Exception $e) {
+                echo($e->getMessage());
             }
+            $shipments = $order->getShipmentCollection();
+            foreach ($shipments as $shipment)
+            {
+                if(!$shipment->isSystem())
+                {
+                    $shipment->setField('STATUS_ID', $this->deliveryStatus);
+                }
+            }
+            $order->save();
         }
-        $order->save();
-
     }
 
     private function customFieldsValidate($customFieldList) {
