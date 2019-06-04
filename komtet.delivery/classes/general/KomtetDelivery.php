@@ -52,6 +52,10 @@ class KomtetDeliveryD7
         $this->defaultCourier = $options['default_courier'];
 
         $this->modGroupName = "КОМТЕТ Касса Доставка";
+        $this->orderStatus = $options['order_status'];
+        $this->deliveryStatus = $options['delivery_status'];
+        $this->payStatus = 'Y';
+
     }
 
     public function getoptions()
@@ -62,7 +66,9 @@ class KomtetDeliveryD7
             'secret' => COption::GetOptionString($moduleID, 'secret_key'),
             'should_form' => COption::GetOptionInt($moduleID, 'should_form') == 1,
             'tax_system' => intval(COption::GetOptionInt($moduleID, 'tax_system')),
-            'default_courier' => intval(COption::GetOptionInt($moduleID, 'default_courier'))
+            'default_courier' => intval(COption::GetOptionInt($moduleID, 'default_courier')),
+            'order_status' => COption::GetOptionString($moduleID, 'order_status'),
+            'delivery_status' => COption::GetOptionString($moduleID, 'delivery_status')
         );
         foreach (array('key', 'secret', 'tax_system') as $key) {
             if (empty($result[$key])) {
@@ -130,8 +136,7 @@ class KomtetDeliveryD7
         }
 
         $scheme = array_key_exists('HTTPS', $_SERVER) && strtolower($_SERVER['HTTPS']) !== 'off' ? 'https' : 'http';
-        $url = sprintf('%s://%s/%s/%s', $scheme, $_SERVER['SERVER_NAME'], "delivery/done_order", $orderId);
-
+        $url = sprintf('%s://%s/%s/%s/', $scheme, $_SERVER['SERVER_NAME'], "delivery/done_order", $orderId);
         $orderDelivery->setCallbackUrl($url);
 
         $normalDate = implode("-", array_reverse(explode(".", $customFieldList["kkd_date"])));
@@ -143,7 +148,6 @@ class KomtetDeliveryD7
             $this->manager->createOrder($orderDelivery);
         } catch (SdkException $e) {
             error_log(sprintf('Failed to send order: %s', $e->getMessage()));
-            die();
         }
     }
 
@@ -151,25 +155,23 @@ class KomtetDeliveryD7
     {
         if(CModule::IncludeModule("sale"))
         {
-            $order = OrderTable::load($orderId);
-
-            try {
-                CSaleOrder::PayOrder($orderId, "Y");
-                CSaleOrder::StatusOrder($orderId, "F");
-                $order->setField("ADDITIONAL_INFO", Date(CDatabase::DateFormatToPHP(CLang::GetDateFormat("FULL", LANG))));
-            } catch (Exception $e) {
-                echo($e->getMessage());
-            }
-            $shipments = $order->getShipmentCollection();
-            foreach ($shipments as $shipment)
-            {
-                if(!$shipment->isSystem())
-                {
-                    $shipment->setField('STATUS_ID', "KD");
-                }
-            }
-            $order->save();
-
+          $order = OrderTable::load($orderId);
+          try {
+              CSaleOrder::PayOrder($orderId, $this->payStatus);
+              CSaleOrder::StatusOrder($orderId, $this->orderStatus);
+              $order->setField("ADDITIONAL_INFO", Date(CDatabase::DateFormatToPHP(CLang::GetDateFormat("FULL", LANG))));
+          } catch (Exception $e) {
+              echo($e->getMessage());
+          }
+          $shipments = $order->getShipmentCollection();
+          foreach ($shipments as $shipment)
+          {
+              if(!$shipment->isSystem())
+              {
+                  $shipment->setField('STATUS_ID', $this->deliveryStatus);
+              }
+          }
+          $order->save();
         }
     }
 }

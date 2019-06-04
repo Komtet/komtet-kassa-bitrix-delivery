@@ -7,6 +7,8 @@ use Komtet\KassaSdk\Client;
 use Komtet\KassaSdk\CourierManager;
 use Komtet\KassaSdk\TaxSystem;
 
+use Bitrix\Sale\Internals\StatusLangTable;
+
 if (!$USER->IsAdmin()) {
     return;
 }
@@ -29,6 +31,8 @@ if ($REQUEST_METHOD == 'POST' && check_bitrix_sessid()) {
         'should_form' => 'bool',
         'tax_system' => 'integer',
         'default_courier' => 'integer',
+        'order_status' => 'string',
+        'delivery_status' => 'string'
     );
     foreach ($data as $key => $type) {
         $value = filter_input(INPUT_POST, strtoupper($key));
@@ -99,6 +103,51 @@ $form->AddDropDownField(
     COption::GetOptionString($moduleId, 'tax_system')
 );
 
+if(CModule::IncludeModule("sale"))
+{
+    $orderStatuses = StatusLangTable::getList(
+        array(
+          'select' => array('*'),
+          'filter' => array('STATUS.TYPE'=>'O'),
+          'select' => array('STATUS_ID', 'NAME')
+        )
+    );
+
+    $deliveryStatuses = StatusLangTable::getList(
+        array(
+          'select' => array('*'),
+          'filter' => array('STATUS.TYPE'=>'D'),
+          'select' => array('STATUS_ID', 'NAME')
+        )
+    );
+
+    while($orderStatus = $orderStatuses->Fetch())
+    {
+        $orderList[$orderStatus["STATUS_ID"]] = $orderStatus["NAME"];
+    }
+    while($deliveryStatus = $deliveryStatuses->Fetch())
+    {
+        $deliveryList[$deliveryStatus["STATUS_ID"]] = $deliveryStatus["NAME"];
+    }
+
+    $form->AddDropDownField(
+        'ORDER_STATUS',
+        GetMessage('KOMTETDELIVERY_OPTIONS_ORDER_STATUS'),
+        true,
+        $orderList,
+        COption::GetOptionString($moduleId, 'order_status')
+    );
+
+    $form->AddDropDownField(
+        'DELIVERY_STATUS',
+        GetMessage('KOMTETDELIVERY_OPTIONS_DELIVERY_STATUS'),
+        true,
+        $deliveryList,
+        COption::GetOptionString($moduleId, 'delivery_status')
+    );
+
+}
+
 if (COption::GetOptionString($moduleId, 'shop_id') and
     COption::GetOptionString($moduleId, 'secret_key'))
 {
@@ -151,6 +200,7 @@ if (COption::GetOptionString($moduleId, 'shop_id') and
     );
   }
 }
+
 
 $form->Buttons(array(
     'disabled' => false,

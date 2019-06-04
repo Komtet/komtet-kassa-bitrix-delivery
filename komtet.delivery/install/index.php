@@ -144,30 +144,12 @@ class komtet_delivery extends CModule
     public function DoInstallFields()
     {
         global $APPLICATION;
+
         if(!CModule::IncludeModule("sale"))
         {
             return false;
         }
-        $new_status = array(
-                'ID' => 'KD',
-                'SORT' => 100,
-                'TYPE' => 'D',
-                'COLOR' => '#00FF00',
-                'LANG' => array(
-                array(
-                  "LID"=>'ru',
-                  "NAME"=>"Доставлен",
-                  "DESCRIPTION"=>"Статус выставляется приложением КОМТЕТ Касса Курьер"),
-                array(
-                  "LID"=>'en',
-                  "NAME"=>"Delivered"))
-        );
 
-        $arStatus = CSaleStatus::GetByID($new_status['ID']);
-        if (!$arStatus) {
-                CSaleStatus::Add($new_status);
-        }
-        
         $personTypeList = CSalePersonType::GetList(array(),
                                                    array(),
                                                    false,
@@ -244,25 +226,27 @@ class komtet_delivery extends CModule
     {
         if(!CModule::IncludeModule("sale"))
   			{
-            $groupList= CSaleOrderPropsGroup::GetList(array(),
-                                                      array("NAME" => $this->GROUP_NAME),
-                                                      false,
-                                                      false,
-                                                      array());
-            while ($group = $groupList->Fetch())
+          return false;
+        }
+
+        $groupList= CSaleOrderPropsGroup::GetList(array(),
+                                                  array("NAME" => $this->GROUP_NAME),
+                                                  false,
+                                                  false,
+                                                  array());
+        while ($group = $groupList->Fetch())
+        {
+            $propertyList = CSaleOrderProps::GetList(array(),
+                                                     array("PROPS_GROUP_ID" => $group["ID"]),
+                                                     false,
+                                                     false,
+                                                     array());
+            while ($property = $propertyList->Fetch())
             {
-                $propertyList = CSaleOrderProps::GetList(array(),
-                                                         array("PROPS_GROUP_ID" => $group["ID"]),
-                                                         false,
-                                                         false,
-                                                         array());
-                while ($property = $propertyList->Fetch())
-                {
-                    CSaleOrderProps::Delete($property["ID"]);
-                }
-                CSaleOrderPropsGroup::Delete($group["ID"]);
+                CSaleOrderProps::Delete($property["ID"]);
             }
-  			}
+            CSaleOrderPropsGroup::Delete($group["ID"]);
+        }
     }
 
 }
