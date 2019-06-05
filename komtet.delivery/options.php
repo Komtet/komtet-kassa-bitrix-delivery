@@ -103,8 +103,7 @@ $form->AddDropDownField(
     COption::GetOptionString($moduleId, 'tax_system')
 );
 
-if (CModule::IncludeModule("sale"))
-{
+if (CModule::IncludeModule("sale")) {
     $orderStatuses = StatusLangTable::getList(
         array(
             'select' => array('*'),
@@ -121,12 +120,10 @@ if (CModule::IncludeModule("sale"))
         )
     );
 
-    while($orderStatus = $orderStatuses->Fetch())
-    {
+    while ($orderStatus = $orderStatuses->Fetch()) {
         $orderList[$orderStatus["STATUS_ID"]] = $orderStatus["NAME"];
     }
-    while($deliveryStatus = $deliveryStatuses->Fetch())
-    {
+    while ($deliveryStatus = $deliveryStatuses->Fetch()) {
         $deliveryList[$deliveryStatus["STATUS_ID"]] = $deliveryStatus["NAME"];
     }
 
@@ -149,8 +146,7 @@ if (CModule::IncludeModule("sale"))
 }
 
 if (COption::GetOptionString($moduleId, 'shop_id') and
-    COption::GetOptionString($moduleId, 'secret_key'))
-{
+    COption::GetOptionString($moduleId, 'secret_key')) {
   $client = new Client(COption::GetOptionString($moduleId, 'shop_id'),
                        COption::GetOptionString($moduleId, 'secret_key'));
 
@@ -165,20 +161,23 @@ if (COption::GetOptionString($moduleId, 'shop_id') and
       error_log(sprintf('Ошибка получения списка доступных курьеров. Exception: %s', $e));
   }
 
-  if ($couriers){
+  if ($couriers) {
       function AddCourierDropDownField($form, $id, $content, $required, $arSelect, $value=false, $arParams=array())
       {
-          if ($value === false)
-                $value = $form->arFieldValues[$id];
+          if ($value === false) {
+              $value = $form->arFieldValues[$id];
+          }
 
           $html = '<select name="'.$id.'"';
-          foreach($arParams as $param)
+          foreach($arParams as $param) {
               $html .= ' '.$param;
+          }
           $html .= '>';
 
           $html .= '<option value="0"'.($value === 0 ? ' selected': '').'>'."Не выбрано".'</option>';
-          foreach($arSelect as $key => $val)
+          foreach($arSelect as $key => $val) {
               $html .= '<option value="'.htmlspecialcharsbx($val['id']).'"'.($value == $val['id']? ' selected': '').'>'.htmlspecialcharsex($val['name']).'</option>';
+          }
           $html .= '</select>';
 
           $form->tabs[$form->tabIndex]["FIELDS"][$id] = array(

@@ -61,7 +61,7 @@ class komtet_delivery extends CModule
             return false;
         }
 
-        if (!$this->DoInstallDB() or !$this->DoInstallFields()){
+        if (!$this->DoInstallDB() or !$this->DoInstallFields()) {
             if ($ex = $APPLICATION->GetException()) {
                 echo(CAdminMessage::ShowMessage(Array("TYPE" => "ERROR",
                                                       "MESSAGE" => GetMessage("MOD_INST_ERR"),
@@ -103,8 +103,7 @@ class komtet_delivery extends CModule
 
     public function DoUninstall()
     {
-        if (IsModuleInstalled($this->MODULE_ID))
-        {
+        if (IsModuleInstalled($this->MODULE_ID)) {
             $this->DoUninstallFields();
             COption::RemoveOption($this->MODULE_ID);
 
@@ -132,7 +131,7 @@ class komtet_delivery extends CModule
         global $DB, $DBType, $APPLICATION;
 
         $errors = $DB->RunSQLBatch(sprintf('%s/db/%s/install.sql', $this->INSTALL_DIR, $DBType));
-        if (empty($errors)){
+        if (empty($errors)) {
             return true;
         }
         $APPLICATION->ThrowException(implode('', $errors));
@@ -149,8 +148,7 @@ class komtet_delivery extends CModule
     {
         global $APPLICATION;
 
-        if (!CModule::IncludeModule("sale"))
-        {
+        if (!CModule::IncludeModule("sale")) {
             return false;
         }
 
@@ -165,8 +163,7 @@ class komtet_delivery extends CModule
             return false;
         }
 
-        while ($personType = $personTypeList->Fetch())
-        {
+        while ($personType = $personTypeList->Fetch()) {
             $groupID = CSaleOrderPropsGroup::Add(array(
                                                     "PERSON_TYPE_ID" => $personType["ID"],
                                                     "NAME" => $this->GROUP_NAME,
@@ -228,8 +225,7 @@ class komtet_delivery extends CModule
 
     public function DoUninstallFields()
     {
-        if (!CModule::IncludeModule("sale"))
-  			{
+        if (!CModule::IncludeModule("sale")) {
           return false;
         }
 
@@ -238,15 +234,13 @@ class komtet_delivery extends CModule
                                                   false,
                                                   false,
                                                   array());
-        while ($group = $groupList->Fetch())
-        {
+        while ($group = $groupList->Fetch()) {
             $propertyList = CSaleOrderProps::GetList(array(),
                                                      array("PROPS_GROUP_ID" => $group["ID"]),
                                                      false,
                                                      false,
                                                      array());
-            while ($property = $propertyList->Fetch())
-            {
+            while ($property = $propertyList->Fetch()) {
                 CSaleOrderProps::Delete($property["ID"]);
             }
             CSaleOrderPropsGroup::Delete($group["ID"]);
