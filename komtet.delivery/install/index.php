@@ -49,7 +49,7 @@ class komtet_delivery extends CModule
         }
 
         if (!$this->DoInstallDB() or !$this->DoInstallFields()){
-            if($ex = $APPLICATION->GetException()) {
+            if ($ex = $APPLICATION->GetException()) {
                 echo(CAdminMessage::ShowMessage(Array("TYPE" => "ERROR",
                                                       "MESSAGE" => GetMessage("MOD_INST_ERR"),
                                                       "DETAILS" => $ex->GetString(),
@@ -106,7 +106,7 @@ class komtet_delivery extends CModule
         global $DB, $DBType, $APPLICATION;
         $errors = $DB->RunSQLBatch(sprintf('%s/db/%s/install.sql', $this->INSTALL_DIR, $DBType));
         if (empty($errors)){
-          return true;
+            return true;
         }
         $APPLICATION->ThrowException(implode('', $errors));
         return false;
@@ -121,7 +121,7 @@ class komtet_delivery extends CModule
     public function DoInstallFields()
     {
         global $APPLICATION;
-        if(!CModule::IncludeModule("sale"))
+        if (!CModule::IncludeModule("sale"))
         {
             return false;
         }
@@ -200,7 +200,7 @@ class komtet_delivery extends CModule
 
     public function DoUninstallFields()
     {
-        if(!CModule::IncludeModule("sale"))
+        if (!CModule::IncludeModule("sale"))
   			{
             $groupList= CSaleOrderPropsGroup::GetList(array(),
                                                       array("NAME" => $this->GROUP_NAME),
