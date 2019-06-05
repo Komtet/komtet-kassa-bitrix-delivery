@@ -10,5 +10,3 @@ $MESS['MOD_ERR_SALE_NOT_FOUND'] = 'Модуль Sale не найден';
 $MESS['MOD_ERR_PERSON_NOT_FOUND'] = 'Типы плательщиков не найдены';
 $MESS['MOD_GROUP_NAME'] = 'КОМТЕТ Касса Доставка';
 $MESS['MOD_ERR_DELIVERY_IS_INSTALLED'] = 'КОМТЕТ Касса Доставка уже установлен';
-
-$MESS['KOMTETDELIVERY_MODULE_URL'] = 'https://kassa.komtet.ru';
