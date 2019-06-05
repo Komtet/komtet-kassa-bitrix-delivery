@@ -154,12 +154,18 @@ class KomtetDeliveryD7
         $shipmentCollection = $order->getShipmentCollection();
         foreach ($shipmentCollection as $shipment) {
             if ($shipment->getPrice() > 0.0) {
+
+                if ($this->taxSystem == TaxSystem::COMMON) {
+                    $shipmentVatRate = round(floatval($shipment->getVatRate()), 2);
+                } else {
+                    $shipmentVatRate = Vat::RATE_NO;
+                }
                 $orderDelivery->addPosition(new OrderPosition(['oid' => $shipment->getId(),
                                                                'name' => mb_convert_encoding($shipment->getField('DELIVERY_NAME'), 'UTF-8', LANG_CHARSET),
                                                                'price' => round($shipment->getPrice(), 2),
                                                                'quantity' => 1,
                                                                'total'=> round($shipment->getPrice(), 2),
-                                                               'vat' => strval(round(floatval($shipment->getVatRate()) * 100, 2)),
+                                                               'vat' => strval($shipmentVatRate),
                                                                'measure_name' => "шт",
                                                    ]));
             }
