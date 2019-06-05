@@ -16,14 +16,8 @@ const PAYSTATUS = 'Y';
 
 class KomtetDelivery
 {
-
     public static function handleSalePayOrder($order)
     {
-        if (!gettype($order) == 'object')
-        {
-            return;
-        }
-
         $orderId = $order->getFieldValues()["ORDER_ID"];
         $ok = new KomtetDeliveryD7();
         $ok->createOrder($orderId);
@@ -105,10 +99,8 @@ class KomtetDeliveryD7
         }
 
         $customFields = CSaleOrderPropsValue::GetOrderProps($orderId);
-        while ($customField = $customFields->Fetch())
-        {
-            if ($customField['GROUP_NAME'] === $this->modGroupName)
-            {
+        while ($customField = $customFields->Fetch()) {
+            if ($customField['GROUP_NAME'] === $this->modGroupName) {
                 $customFieldList[$customField["CODE"]] = $customField["VALUE"];
             }
         }
@@ -146,18 +138,18 @@ class KomtetDeliveryD7
                                                            'total'=> round($position->getFinalPrice(), 2),
                                                            'vat' => $itemVatRate,
                                                            'measure_name' => $position->getField('MEASURE_NAME'),
-                                               ]));
+                                                          ]));
         }
 
         $shipmentCollection = $order->getShipmentCollection();
         foreach ($shipmentCollection as $shipment) {
             if ($shipment->getPrice() > 0.0) {
-
                 if ($this->taxSystem == TaxSystem::COMMON) {
                     $shipmentVatRate = round(floatval($shipment->getVatRate()), 2);
                 } else {
                     $shipmentVatRate = Vat::RATE_NO;
                 }
+
                 $orderDelivery->addPosition(new OrderPosition(['oid' => $shipment->getId(),
                                                                'name' => mb_convert_encoding($shipment->getField('DELIVERY_NAME'), 'UTF-8', LANG_CHARSET),
                                                                'price' => round($shipment->getPrice(), 2),
@@ -165,7 +157,7 @@ class KomtetDeliveryD7
                                                                'total'=> round($shipment->getPrice(), 2),
                                                                'vat' => strval($shipmentVatRate),
                                                                'measure_name' => MEASURE_NAME,
-                                                   ]));
+                                                              ]));
             }
         }
 
@@ -201,8 +193,7 @@ class KomtetDeliveryD7
 
     public function doneOrder($orderId)
     {
-        if (!CModule::IncludeModule("sale"))
-        {
+        if (!CModule::IncludeModule("sale")) {
           return false;
         }
 
@@ -213,10 +204,8 @@ class KomtetDeliveryD7
         $order->setField("ADDITIONAL_INFO", Date(CDatabase::DateFormatToPHP(CLang::GetDateFormat("SHORT", LANG))));
 
         $shipments = $order->getShipmentCollection();
-        foreach ($shipments as $shipment)
-        {
-            if (!$shipment->isSystem())
-            {
+        foreach ($shipments as $shipment) {
+            if (!$shipment->isSystem()) {
                 $shipment->setField('STATUS_ID', $this->deliveryStatus);
             }
         }
