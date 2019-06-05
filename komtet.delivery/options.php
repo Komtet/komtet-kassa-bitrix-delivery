@@ -103,21 +103,21 @@ $form->AddDropDownField(
     COption::GetOptionString($moduleId, 'tax_system')
 );
 
-if(CModule::IncludeModule("sale"))
+if (CModule::IncludeModule("sale"))
 {
     $orderStatuses = StatusLangTable::getList(
         array(
-          'select' => array('*'),
-          'filter' => array('STATUS.TYPE'=>'O'),
-          'select' => array('STATUS_ID', 'NAME')
+            'select' => array('*'),
+            'filter' => array('STATUS.TYPE'=>'O'),
+            'select' => array('STATUS_ID', 'NAME')
         )
     );
 
     $deliveryStatuses = StatusLangTable::getList(
         array(
-          'select' => array('*'),
-          'filter' => array('STATUS.TYPE'=>'D'),
-          'select' => array('STATUS_ID', 'NAME')
+            'select' => array('*'),
+            'filter' => array('STATUS.TYPE'=>'D'),
+            'select' => array('STATUS_ID', 'NAME')
         )
     );
 
@@ -156,48 +156,48 @@ if (COption::GetOptionString($moduleId, 'shop_id') and
 
   $courierManager = new CourierManager($client);
   try{
-    $couriers = array_map(function($courier){
-      return array('id' => $courier['id'],
-                   'name' => $courier['name']);
-    }, $courierManager->getCouriers()['couriers']);
+      $couriers = array_map(function($courier){
+        return array('id' => $courier['id'],
+                     'name' => $courier['name']);
+      }, $courierManager->getCouriers()['couriers']);
   }
   catch (Exception $e){
-    error_log(sprintf('Ошибка получения списка доступных курьеров. Exception: %s', $e));
+      error_log(sprintf('Ошибка получения списка доступных курьеров. Exception: %s', $e));
   }
 
   if ($couriers){
-    function AddCourierDropDownField($form, $id, $content, $required, $arSelect, $value=false, $arParams=array())
-    {
-      if($value === false)
-            $value = $form->arFieldValues[$id];
+      function AddCourierDropDownField($form, $id, $content, $required, $arSelect, $value=false, $arParams=array())
+      {
+          if ($value === false)
+                $value = $form->arFieldValues[$id];
 
-        $html = '<select name="'.$id.'"';
-        foreach($arParams as $param)
-            $html .= ' '.$param;
-        $html .= '>';
+          $html = '<select name="'.$id.'"';
+          foreach($arParams as $param)
+              $html .= ' '.$param;
+          $html .= '>';
 
-        $html .= '<option value="0"'.($value === 0 ? ' selected': '').'>'."Не выбрано".'</option>';
-        foreach($arSelect as $key => $val)
-            $html .= '<option value="'.htmlspecialcharsbx($val['id']).'"'.($value == $val['id']? ' selected': '').'>'.htmlspecialcharsex($val['name']).'</option>';
-        $html .= '</select>';
+          $html .= '<option value="0"'.($value === 0 ? ' selected': '').'>'."Не выбрано".'</option>';
+          foreach($arSelect as $key => $val)
+              $html .= '<option value="'.htmlspecialcharsbx($val['id']).'"'.($value == $val['id']? ' selected': '').'>'.htmlspecialcharsex($val['name']).'</option>';
+          $html .= '</select>';
 
-        $form->tabs[$form->tabIndex]["FIELDS"][$id] = array(
-            "id" => $id,
-            "required" => $required,
-            "content" => $content,
-            "html" => '<td width="40%">'.($required? '<span class="adm-required-field">'.$form->GetCustomLabelHTML($id, $content).'</span>': $form->GetCustomLabelHTML($id, $content)).'</td><td>'.$html.'</td>',
-            "hidden" => '<input type="hidden" name="'.$id.'" value="'.htmlspecialcharsbx($value).'">',
-        );
-    }
+          $form->tabs[$form->tabIndex]["FIELDS"][$id] = array(
+              "id" => $id,
+              "required" => $required,
+              "content" => $content,
+              "html" => '<td width="40%">'.($required? '<span class="adm-required-field">'.$form->GetCustomLabelHTML($id, $content).'</span>': $form->GetCustomLabelHTML($id, $content)).'</td><td>'.$html.'</td>',
+              "hidden" => '<input type="hidden" name="'.$id.'" value="'.htmlspecialcharsbx($value).'">',
+          );
+      }
 
-    AddCourierDropDownField(
-      $form,
-      'DEFAULT_COURIER',
-      GetMessage('KOMTETDELIVERY_OPTIONS_DEFAULT_COURIER'),
-      true,
-      $couriers,
-      COption::GetOptionString($moduleId, 'default_courier')
-    );
+      AddCourierDropDownField(
+          $form,
+          'DEFAULT_COURIER',
+          GetMessage('KOMTETDELIVERY_OPTIONS_DEFAULT_COURIER'),
+          true,
+          $couriers,
+          COption::GetOptionString($moduleId, 'default_courier')
+      );
   }
 }
 

@@ -11,6 +11,8 @@ use Komtet\KassaSdk\OrderPosition;
 use Komtet\KassaSdk\TaxSystem;
 use Komtet\KassaSdk\Vat;
 
+const MEASURE_NAME = 'шт';
+const PAYSTATUS = 'Y';
 
 class KomtetDelivery
 {
@@ -60,8 +62,7 @@ class KomtetDeliveryD7
         $this->modGroupName = "КОМТЕТ Касса Доставка";
         $this->orderStatus = $options['order_status'];
         $this->deliveryStatus = $options['delivery_status'];
-        $this->payStatus = 'Y';
-
+        $this->payStatus = PAYSTATUS;
     }
 
     public function getoptions()
@@ -82,16 +83,15 @@ class KomtetDeliveryD7
 
     public function createOrder($orderId)
     {
-
         $kOrderID = KomtetDeliveryReportsTable::getRow(array(
             'select' => array('*'),
             'filter' => array('order_id' => $orderId)
         ));
 
         if (!$kOrderID) {
-          $kOrderID = KomtetDeliveryReportsTable::add(['order_id' => $orderId])->getId();
+            $kOrderID = KomtetDeliveryReportsTable::add(['order_id' => $orderId])->getId();
         } else {
-          $kOrderID = $kOrderID['id'];
+            $kOrderID = $kOrderID['id'];
         }
 
         if (!$this->shouldForm ) {
@@ -118,9 +118,7 @@ class KomtetDeliveryD7
 
         if (!$this->validation($orderId, $customFieldList, $rsUser)) {
             KomtetDeliveryReportsTable::update($kOrderID,
-                                               array(
-                                                  "request" => 'validation error'
-                                               ));
+                                               array("request" => 'validation error'));
             return false;
         }
 
@@ -143,9 +141,9 @@ class KomtetDeliveryD7
 
             $orderDelivery->addPosition(new OrderPosition(['oid' => $position->getField('ID'),
                                                            'name' => $position->getField('NAME'),
-                                                           'price' => round($position->getPrice(),2),
+                                                           'price' => round($position->getPrice(), 2),
                                                            'quantity' => $position->getQuantity(),
-                                                           'total'=> round($position->getFinalPrice(),2),
+                                                           'total'=> round($position->getFinalPrice(), 2),
                                                            'vat' => $itemVatRate,
                                                            'measure_name' => $position->getField('MEASURE_NAME'),
                                                ]));
@@ -166,11 +164,10 @@ class KomtetDeliveryD7
                                                                'quantity' => 1,
                                                                'total'=> round($shipment->getPrice(), 2),
                                                                'vat' => strval($shipmentVatRate),
-                                                               'measure_name' => "шт",
+                                                               'measure_name' => MEASURE_NAME,
                                                    ]));
             }
         }
-
 
         if (!$this->defaultCourier == 0) {
             $orderDelivery->setCourierId($this->defaultCourier);
@@ -204,7 +201,7 @@ class KomtetDeliveryD7
 
     public function doneOrder($orderId)
     {
-        if(!CModule::IncludeModule("sale"))
+        if (!CModule::IncludeModule("sale"))
         {
           return false;
         }
@@ -218,7 +215,7 @@ class KomtetDeliveryD7
         $shipments = $order->getShipmentCollection();
         foreach ($shipments as $shipment)
         {
-            if(!$shipment->isSystem())
+            if (!$shipment->isSystem())
             {
                 $shipment->setField('STATUS_ID', $this->deliveryStatus);
             }
