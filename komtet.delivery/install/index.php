@@ -131,7 +131,7 @@ class komtet_delivery extends CModule
 
         $errors = $DB->RunSQLBatch(sprintf('%s/db/%s/install.sql', $this->INSTALL_DIR, $DBType));
         if (empty($errors)){
-          return true;
+            return true;
         }
         $APPLICATION->ThrowException(implode('', $errors));
         return false;
