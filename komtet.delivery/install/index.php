@@ -44,27 +44,27 @@ class komtet_delivery extends CModule
         global $APPLICATION;
 
         if (!IsModuleInstalled("sale")) {
-            echo(CAdminMessage::ShowMessage(Array("TYPE"=>"ERROR",
-                                                  "MESSAGE" =>GetMessage("MOD_INST_ERR"),
-                                                  "DETAILS"=>GetMessage("MOD_ERR_SALE_NOT_FOUND"),
-                                                  "HTML"=>true)));
+            echo(CAdminMessage::ShowMessage(Array("TYPE" => "ERROR",
+                                                  "MESSAGE" => GetMessage("MOD_INST_ERR"),
+                                                  "DETAILS" => GetMessage("MOD_ERR_SALE_NOT_FOUND"),
+                                                  "HTML" => true)));
             return false;
         }
 
         if (IsModuleInstalled($this->MODULE_ID)) {
-            echo(CAdminMessage::ShowMessage(Array("TYPE"=>"ERROR",
-                                                  "MESSAGE" =>GetMessage("MOD_INST_ERR"),
-                                                  "DETAILS"=>GetMessage("MOD_ERR_DELIVERY_IS_INSTALLED"),
-                                                  "HTML"=>true)));
+            echo(CAdminMessage::ShowMessage(Array("TYPE" => "ERROR",
+                                                  "MESSAGE" => GetMessage("MOD_INST_ERR"),
+                                                  "DETAILS" => GetMessage("MOD_ERR_DELIVERY_IS_INSTALLED"),
+                                                  "HTML" => true)));
             return false;
         }
 
         if (!$this->DoInstallDB() or !$this->DoInstallFields()){
             if($ex = $APPLICATION->GetException()) {
-                echo(CAdminMessage::ShowMessage(Array("TYPE"=>"ERROR",
-                                                      "MESSAGE" =>GetMessage("MOD_INST_ERR"),
-                                                      "DETAILS"=>$ex->GetString(),
-                                                      "HTML"=>true)));
+                echo(CAdminMessage::ShowMessage(Array("TYPE" => "ERROR",
+                                                      "MESSAGE" => GetMessage("MOD_INST_ERR"),
+                                                      "DETAILS" => $ex->GetString(),
+                                                      "HTML" => true)));
             }
             return false;
         }
@@ -174,47 +174,47 @@ class komtet_delivery extends CModule
             $arFields = array(
                   "ADDRESS" => array(
                                       "PERSON_TYPE_ID" => $personType["ID"],
-                                      "NAME"=> "Адрес доставки",
-                                      "TYPE"=> "TEXT",
-                                      "REQUIED"=> "Y" ,
-                                      "SORT"=> "100" ,
-                                      "PROPS_GROUP_ID"=> $groupID,
-                                      "CODE"=> "kkd_address"),
+                                      "NAME" => "Адрес доставки",
+                                      "TYPE" => "TEXT",
+                                      "REQUIED" => "Y" ,
+                                      "SORT" => "100" ,
+                                      "PROPS_GROUP_ID" => $groupID,
+                                      "CODE" => "kkd_address"),
                   "DATE" => array(
                                       "PERSON_TYPE_ID" => $personType["ID"],
-                                      "NAME"=> "Дата доставки",
-                                      "TYPE"=> "DATE",
-                                      "REQUIED"=> "Y" ,
-                                      "SORT"=> "100" ,
-                                      "PROPS_GROUP_ID"=> $groupID,
-                                      "CODE"=> "kkd_date"),
+                                      "NAME" => "Дата доставки",
+                                      "TYPE" => "DATE",
+                                      "REQUIED" => "Y" ,
+                                      "SORT" => "100" ,
+                                      "PROPS_GROUP_ID" => $groupID,
+                                      "CODE" => "kkd_date"),
                   "TIME_START" => array(
                                       "PERSON_TYPE_ID" => $personType["ID"],
-                                      "NAME"=> "Время доставки от",
-                                      "TYPE"=> "TEXT",
-                                      "REQUIED"=> "Y" ,
-                                      "SORT"=> "100" ,
-                                      "PROPS_GROUP_ID"=> $groupID,
-                                      "CODE"=> "kkd_time_start",
-                                      "DEFAULT_VALUE"=> "00:00",
-                                      "SETTINGS"=>array(
-                                          "MINLENGTH"=>"5",
-                                          "MAXLENGTH"=>"5",
-                                          "PATTERN"=>"([01]?[0-9]|2[0-3]):[0-5][0-9]"
+                                      "NAME" => "Время доставки от",
+                                      "TYPE" => "TEXT",
+                                      "REQUIED" => "Y" ,
+                                      "SORT" => "100" ,
+                                      "PROPS_GROUP_ID" => $groupID,
+                                      "CODE" => "kkd_time_start",
+                                      "DEFAULT_VALUE" => "00:00",
+                                      "SETTINGS" => array(
+                                          "MINLENGTH" => "5",
+                                          "MAXLENGTH" => "5",
+                                          "PATTERN" => "([01]?[0-9]|2[0-3]):[0-5][0-9]"
                                       )),
                   "TIME_FINISH" => array(
                                       "PERSON_TYPE_ID" => $personType["ID"],
-                                      "NAME"=> "Время доставки до",
-                                      "TYPE"=> "TEXT",
-                                      "REQUIED"=> "Y" ,
-                                      "SORT"=> "100" ,
-                                      "PROPS_GROUP_ID"=> $groupID,
-                                      "CODE"=> "kkd_time_end",
-                                      "DEFAULT_VALUE"=> "23:00",
-                                      "SETTINGS"=>array(
-                                          "MINLENGTH"=>"5",
-                                          "MAXLENGTH"=>"5",
-                                          "PATTERN"=>"([01]?[0-9]|2[0-3]):[0-5][0-9]"
+                                      "NAME" => "Время доставки до",
+                                      "TYPE" => "TEXT",
+                                      "REQUIED" => "Y" ,
+                                      "SORT" => "100" ,
+                                      "PROPS_GROUP_ID" => $groupID,
+                                      "CODE" => "kkd_time_end",
+                                      "DEFAULT_VALUE" => "23:00",
+                                      "SETTINGS" => array(
+                                          "MINLENGTH" => "5",
+                                          "MAXLENGTH" => "5",
+                                          "PATTERN" => "([01]?[0-9]|2[0-3]):[0-5][0-9]"
                                       )),
             );
             foreach ($arFields as $arField) {
