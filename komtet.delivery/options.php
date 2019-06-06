@@ -169,13 +169,13 @@ if (COption::GetOptionString($moduleId, 'shop_id') and
           }
 
           $html = '<select name="'.$id.'"';
-          foreach($arParams as $param) {
+          foreach ($arParams as $param) {
               $html .= ' '.$param;
           }
           $html .= '>';
 
           $html .= '<option value="0"'.($value === 0 ? ' selected': '').'>'."Не выбрано".'</option>';
-          foreach($arSelect as $key => $val) {
+          foreach ($arSelect as $key => $val) {
               $html .= '<option value="'.htmlspecialcharsbx($val['id']).'"'.($value == $val['id']? ' selected': '').'>'.htmlspecialcharsex($val['name']).'</option>';
           }
           $html .= '</select>';
