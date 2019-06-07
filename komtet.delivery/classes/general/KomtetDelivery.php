@@ -88,7 +88,7 @@ class KomtetDeliveryD7
             $kOrderID = $kOrderID['id'];
         }
 
-        if (!$this->shouldForm ) {
+        if (!$this->shouldForm) {
             error_log(sprintf('[Order - %s] Заказ не создан, флаг генерации не установлен', $orderId));
             return false;
         }
