@@ -28,6 +28,17 @@ class komtet_delivery extends CModule
             $this->MODULE_VERSION = $arModuleVersion["VERSION"];
             $this->MODULE_VERSION_DATE = $arModuleVersion["VERSION_DATE"];
         }
+
+        $this->FILES = array(
+            "admin" => array(
+                "FROM" => sprintf('%s/%s', $this->INSTALL_DIR, "admin"),
+                "TO" => sprintf('%s/bitrix/%s', $_SERVER["DOCUMENT_ROOT"], 'admin')
+            ),
+            "tools" => array(
+                "FROM" => sprintf('%s/%s', $this->INSTALL_DIR, "tools"),
+                "TO" => sprintf('%s/%s', $_SERVER["DOCUMENT_ROOT"], 'komtet.delivery')
+            )
+        );
     }
 
     public function DoInstall()
@@ -50,7 +61,7 @@ class komtet_delivery extends CModule
             return false;
         }
 
-        if (!$this->DoInstallDB() or !$this->DoInstallFields()){
+        if (!$this->DoInstallDB() or !$this->DoInstallFields()) {
             if ($ex = $APPLICATION->GetException()) {
                 echo(CAdminMessage::ShowMessage(Array("TYPE" => "ERROR",
                                                       "MESSAGE" => GetMessage("MOD_INST_ERR"),
@@ -64,16 +75,26 @@ class komtet_delivery extends CModule
         COption::SetOptionString($this->MODULE_ID, 'server_url', KOMTETDELIVERY_MODULE_URL);
         COption::SetOptionInt($this->MODULE_ID, 'should_form', 1);
         RegisterModule($this->MODULE_ID);
+        RegisterModuleDependences('sale', 'OnShipmentAllowDelivery', $this->MODULE_ID, 'KomtetDelivery', 'handleSalePayOrder');
+
+        $callback_url = array(
+            'CONDITION' => '#^/done_order/([0-9a-zA-Z-]+)/#',
+            'RULE' => 'ORDER_ID=$1',
+            'ID' => 'bitrix:komtet.delivery',
+            'PATH' => sprintf('/%s/%s', 'komtet.delivery', 'komtet_delivery_done_order.php'),
+            'SORT' => 100);
+
+        CUrlRewriter::Add($callback_url);
 
         $saleModuleInfo = CModule::CreateModuleObject('sale');
     }
 
     public function DoInstallFiles()
     {
-        foreach (array('admin', 'tools') as $key) {
+        foreach ($this->FILES as $file) {
             CopyDirFiles(
-                sprintf('%s/%s', $this->INSTALL_DIR, $key),
-                sprintf('%s/bitrix/%s', $_SERVER["DOCUMENT_ROOT"], $key),
+                $file["FROM"],
+                $file["TO"],
                 true,
                 true
             );
@@ -82,32 +103,35 @@ class komtet_delivery extends CModule
 
     public function DoUninstall()
     {
-        if (IsModuleInstalled($this->MODULE_ID))
-        {
+        if (IsModuleInstalled($this->MODULE_ID)) {
             $this->DoUninstallFields();
             COption::RemoveOption($this->MODULE_ID);
 
             UnRegisterModule($this->MODULE_ID);
+            UnRegisterModuleDependences("sale", "OnShipmentAllowDelivery", $this->MODULE_ID, "KomtetDelivery", "handleSalePayOrder");
             $this->DoUninstallDB();
             $this->DoUninstallFiles();
+            CUrlRewriter::Delete(array('ID' => 'bitrix:komtet.delivery'));
         }
     }
 
     public function DoUninstallFiles()
     {
-        foreach (array('admin', 'tools') as $key) {
+        foreach ($this->FILES as $file) {
             DeleteDirFiles(
-                sprintf('%s/%s', $this->INSTALL_DIR, $key),
-                sprintf('%s/bitrix/%s', $_SERVER["DOCUMENT_ROOT"], $key)
+                $file["FROM"],
+                $file["TO"]
             );
         }
+        rmdir($this->FILES["tools"]["TO"]);
     }
 
     public function DoInstallDB()
     {
         global $DB, $DBType, $APPLICATION;
+
         $errors = $DB->RunSQLBatch(sprintf('%s/db/%s/install.sql', $this->INSTALL_DIR, $DBType));
-        if (empty($errors)){
+        if (empty($errors)) {
             return true;
         }
         $APPLICATION->ThrowException(implode('', $errors));
@@ -123,8 +147,8 @@ class komtet_delivery extends CModule
     public function DoInstallFields()
     {
         global $APPLICATION;
-        if (!CModule::IncludeModule("sale"))
-        {
+
+        if (!CModule::IncludeModule("sale")) {
             return false;
         }
 
@@ -139,8 +163,7 @@ class komtet_delivery extends CModule
             return false;
         }
 
-        while ($personType = $personTypeList->Fetch())
-        {
+        while ($personType = $personTypeList->Fetch()) {
             $groupID = CSaleOrderPropsGroup::Add(array(
                                                     "PERSON_TYPE_ID" => $personType["ID"],
                                                     "NAME" => $this->GROUP_NAME,
@@ -202,27 +225,26 @@ class komtet_delivery extends CModule
 
     public function DoUninstallFields()
     {
-        if (!CModule::IncludeModule("sale"))
-  			{
-            $groupList= CSaleOrderPropsGroup::GetList(array(),
-                                                      array("NAME" => $this->GROUP_NAME),
-                                                      false,
-                                                      false,
-                                                      array());
-            while ($group = $groupList->Fetch())
-            {
-                $propertyList = CSaleOrderProps::GetList(array(),
-                                                         array("PROPS_GROUP_ID" => $group["ID"]),
-                                                         false,
-                                                         false,
-                                                         array());
-                while ($property = $propertyList->Fetch())
-                {
-                    CSaleOrderProps::Delete($property["ID"]);
-                }
-                CSaleOrderPropsGroup::Delete($group["ID"]);
+        if (!CModule::IncludeModule("sale")) {
+          return false;
+        }
+
+        $groupList= CSaleOrderPropsGroup::GetList(array(),
+                                                  array("NAME" => $this->GROUP_NAME),
+                                                  false,
+                                                  false,
+                                                  array());
+        while ($group = $groupList->Fetch()) {
+            $propertyList = CSaleOrderProps::GetList(array(),
+                                                     array("PROPS_GROUP_ID" => $group["ID"]),
+                                                     false,
+                                                     false,
+                                                     array());
+            while ($property = $propertyList->Fetch()) {
+                CSaleOrderProps::Delete($property["ID"]);
             }
-  			}
+            CSaleOrderPropsGroup::Delete($group["ID"]);
+        }
     }
 
 }

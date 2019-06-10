@@ -3,6 +3,10 @@
 Плагин для создания заявки на доставку из birtix
 
 ## Запуск проекта
+* Скачать проект
+```sh
+git clone --recursive git@github.com:Komtet/komtet-kassa-bitrix-delivery.git
+```
 
 * Скачать установщик Bitrix CMS (Бизнес) - http://www.1c-bitrix.ru/download/cms.php
 
@@ -35,7 +39,7 @@ make start
 make update
 ```
 
-* Утсновить модуль из Bitrix CMS: http://bitrix.localhost.ru/bitrix/admin/partner_modules.php?lang=ru
+* Установить модуль из Bitrix CMS: http://bitrix.localhost.ru/bitrix/admin/partner_modules.php?lang=ru
 
 ## Доступные комманды из Makefile
 
