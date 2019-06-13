@@ -114,10 +114,7 @@ class KomtetDeliveryD7
             return false;
         }
 
-        $orderDelivery = new Order(["oid" => $order->getId(),
-                                    "state"=> 'new',
-                                    "sno" => $this->taxSystem,
-                                    "is_paid" => $order->isPaid()]);
+        $orderDelivery = new Order($order->getId(), 'new', $this->taxSystem, $order->isPaid());
         $orderDelivery->setClient($customFieldList['kkd_address'],
                                   $rsUser['PERSONAL_PHONE'],
                                   $rsUser['EMAIL'],
