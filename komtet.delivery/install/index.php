@@ -45,13 +45,21 @@ class komtet_delivery extends CModule
     {
         global $APPLICATION;
 
-        if (!IsModuleInstalled("sale")) {
+				if (!IsModuleInstalled("sale")) {
             echo(CAdminMessage::ShowMessage(Array("TYPE" => "ERROR",
                                                   "MESSAGE" => GetMessage("MOD_INST_ERR"),
                                                   "DETAILS" => GetMessage("MOD_ERR_SALE_NOT_FOUND"),
                                                   "HTML" => true)));
             return false;
         }
+
+				if (version_compare(CModule::CreateModuleObject('sale')->MODULE_VERSION, '15.5.0', '<')) {
+						echo(CAdminMessage::ShowMessage(Array("TYPE" => "ERROR",
+																									"MESSAGE" => GetMessage("MOD_INST_ERR"),
+																									"DETAILS" => GetMessage("MOD_ERR_SALE_UPDATE"),
+																									"HTML" => true)));
+						return false;
+				}
 
         if (IsModuleInstalled($this->MODULE_ID)) {
             echo(CAdminMessage::ShowMessage(Array("TYPE" => "ERROR",
