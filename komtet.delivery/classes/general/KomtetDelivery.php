@@ -105,7 +105,7 @@ class KomtetDeliveryD7
             }
         }
 
-        $userId = $order->getPersonTypeId();
+        $userId = $order->getUserId();
         $rsUser = UserTable::getById($userId)->fetch();
 
         if (!$this->validation($orderId, $customFieldList, $rsUser)) {
@@ -144,8 +144,12 @@ class KomtetDeliveryD7
         $shipmentCollection = $order->getShipmentCollection();
         foreach ($shipmentCollection as $shipment) {
             if ($shipment->getPrice() > 0.0) {
-                if ($this->taxSystem == TaxSystem::COMMON) {
-                    $shipmentVatRate = round(floatval($shipment->getVatRate()), 2);
+                if (version_compare(CModule::CreateModuleObject('sale')->MODULE_VERSION, '17.4.0', '>')) {
+                    if ($this->taxSystem == TaxSystem::COMMON) {
+                        $shipmentVatRate = round(floatval($shipment->getVatRate()), 2);
+                    } else {
+                        $shipmentVatRate = Vat::RATE_NO;
+                    }
                 } else {
                     $shipmentVatRate = Vat::RATE_NO;
                 }
@@ -169,8 +173,8 @@ class KomtetDeliveryD7
         }
 
         $scheme = array_key_exists('HTTPS', $_SERVER) && strtolower($_SERVER['HTTPS']) !== 'off' ? 'https' : 'http';
-        $url = sprintf('%s://%s/%s/%s/', $scheme, $_SERVER['SERVER_NAME'], "delivery/done_order", $orderId);
-        $orderDelivery->setCallbackUrl($url);
+        $url = sprintf('%s://%s/%s/%s/', $scheme, $_SERVER['SERVER_NAME'], "done_order", $orderId);
+        $orderDelivery->setСallbackUrl($url);
 
         $normalDate = implode("-", array_reverse(explode(".", $customFieldList["kkd_date"])));
         $startDate = sprintf("%s %s", $normalDate, $customFieldList["kkd_time_start"]);
