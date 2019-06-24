@@ -1,7 +1,7 @@
 <?php
 
-require_once $_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/main/include/prolog_admin_before.php";
-require_once $_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/main/include/prolog_admin_after.php";
+require_once $_SERVER["DOCUMENT_ROOT"] . "/bitrix/modules/main/include/prolog_admin_before.php";
+require_once $_SERVER["DOCUMENT_ROOT"] . "/bitrix/modules/main/include/prolog_admin_after.php";
 
 IncludeModuleLangFile(__FILE__);
 
@@ -9,7 +9,7 @@ $APPLICATION->SetTitle(GetMessage('KOMTETDELIVERY_REPORTS_TITLE'));
 
 if (!CModule::IncludeModule("komtet.delivery")) {
     ShowError(GetMessage('KOMTETDELIVERY_REPORTS_MODULE_INCLUDE_ERROR'));
-    require $_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/main/include/epilog_admin.php";
+    require $_SERVER["DOCUMENT_ROOT"] . "/bitrix/modules/main/include/epilog_admin.php";
 }
 
 $list = new CAdminList('komtetdelivery_reports');
@@ -46,9 +46,9 @@ $page = filter_input(INPUT_GET, 'PAGEN_1', FILTER_VALIDATE_INT);
 $page = $page ? $page : 1;
 $limit = 10;
 $offset = abs(intval($page * $limit - $limit));
-$totalItems = (int) KomtetDeliveryReportsTable::getCount();
+$totalItems = (int)KomtetDeliveryReportsTable::getCount();
 $navData = new CDBResult();
-$navData->NavPageCount = (int) ceil($totalItems / $limit);
+$navData->NavPageCount = (int)ceil($totalItems / $limit);
 $navData->NavPageNomer = $page;
 $navData->NavNum = 1;
 $navData->NavPageSize = $limit;
@@ -74,4 +74,4 @@ $list->DisplayList();
 
 $APPLICATION->IncludeComponent('bitrix:system.pagenavigation', '', array('NAV_RESULT' => $navData));
 
-require $_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/main/include/epilog_admin.php";
+require $_SERVER["DOCUMENT_ROOT"] . "/bitrix/modules/main/include/epilog_admin.php";

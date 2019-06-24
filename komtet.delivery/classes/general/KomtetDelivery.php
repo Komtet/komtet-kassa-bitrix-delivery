@@ -109,19 +109,25 @@ class KomtetDeliveryD7
         $rsUser = UserTable::getById($userId)->fetch();
 
         if (!$this->validation($orderId, $customFieldList, $rsUser)) {
-            KomtetDeliveryReportsTable::update($kOrderID,
-                                               array("request" => 'validation error'));
+            KomtetDeliveryReportsTable::update(
+                $kOrderID,
+                array("request" => 'validation error')
+            );
             return false;
         }
 
         $orderDelivery = new Order($order->getId(), 'new', $this->taxSystem, $order->isPaid());
-        $orderDelivery->setClient($customFieldList['kkd_address'],
-                                  $rsUser['PERSONAL_PHONE'],
-                                  $rsUser['EMAIL'],
-                                  sprintf("%s %s %s",
-                                          $rsUser['NAME'],
-                                          $rsUser['SECOND_NAME'],
-                                          $rsUser['LAST_NAME']));
+        $orderDelivery->setClient(
+            $customFieldList['kkd_address'],
+            $rsUser['PERSONAL_PHONE'],
+            $rsUser['EMAIL'],
+            sprintf(
+                "%s %s %s",
+                $rsUser['NAME'],
+                $rsUser['SECOND_NAME'],
+                $rsUser['LAST_NAME']
+            )
+        );
 
         $positions = $order->getBasket();
         foreach ($positions as $position) {
@@ -131,14 +137,15 @@ class KomtetDeliveryD7
                 $itemVatRate = Vat::RATE_NO;
             }
 
-            $orderDelivery->addPosition(new OrderPosition(['oid' => $position->getField('ID'),
-                                                           'name' => $position->getField('NAME'),
-                                                           'price' => round($position->getPrice(), 2),
-                                                           'quantity' => $position->getQuantity(),
-                                                           'total'=> round($position->getFinalPrice(), 2),
-                                                           'vat' => $itemVatRate,
-                                                           'measure_name' => $position->getField('MEASURE_NAME'),
-                                                          ]));
+            $orderDelivery->addPosition(new OrderPosition([
+                'oid' => $position->getField('ID'),
+                'name' => $position->getField('NAME'),
+                'price' => round($position->getPrice(), 2),
+                'quantity' => $position->getQuantity(),
+                'total' => round($position->getFinalPrice(), 2),
+                'vat' => $itemVatRate,
+                'measure_name' => $position->getField('MEASURE_NAME'),
+            ]));
         }
 
         $shipmentCollection = $order->getShipmentCollection();
@@ -154,14 +161,15 @@ class KomtetDeliveryD7
                     $shipmentVatRate = Vat::RATE_NO;
                 }
 
-                $orderDelivery->addPosition(new OrderPosition(['oid' => $shipment->getId(),
-                                                               'name' => mb_convert_encoding($shipment->getField('DELIVERY_NAME'), 'UTF-8', LANG_CHARSET),
-                                                               'price' => round($shipment->getPrice(), 2),
-                                                               'quantity' => 1,
-                                                               'total'=> round($shipment->getPrice(), 2),
-                                                               'vat' => strval($shipmentVatRate),
-                                                               'measure_name' => MEASURE_NAME,
-                                                              ]));
+                $orderDelivery->addPosition(new OrderPosition([
+                    'oid' => $shipment->getId(),
+                    'name' => mb_convert_encoding($shipment->getField('DELIVERY_NAME'), 'UTF-8', LANG_CHARSET),
+                    'price' => round($shipment->getPrice(), 2),
+                    'quantity' => 1,
+                    'total' => round($shipment->getPrice(), 2),
+                    'vat' => strval($shipmentVatRate),
+                    'measure_name' => MEASURE_NAME,
+                ]));
             }
         }
 
@@ -186,19 +194,21 @@ class KomtetDeliveryD7
         } catch (SdkException $e) {
             error_log(sprintf('Ошибка создания заказа: %s', $e->getMessage()));
         } finally {
-            KomtetDeliveryReportsTable::Update($kOrderID,
-                                               array(
-                                                  "request" => json_encode($orderDelivery->asArray()),
-                                                  "response" => json_encode($response),
-                                                  "kk_id" => $response['id'] !== null ? $response['id'] : null
-                                               ));
+            KomtetDeliveryReportsTable::Update(
+                $kOrderID,
+                array(
+                    "request" => json_encode($orderDelivery->asArray()),
+                    "response" => json_encode($response),
+                    "kk_id" => $response['id'] !== null ? $response['id'] : null
+                )
+            );
         }
     }
 
     public function doneOrder($orderId)
     {
         if (!CModule::IncludeModule("sale")) {
-          return false;
+            return false;
         }
 
         $order = OrderTable::load($orderId);
@@ -216,40 +226,44 @@ class KomtetDeliveryD7
         $order->save();
     }
 
-    private function validation($orderId, $customFieldList, $rsUser) {
-      if (!$this->customFieldsValidate($customFieldList)) {
-          error_log(sprintf('[Order - %s] Ошибка заполенния дополнительных полей', $orderId));
-          return false;
-      }
+    private function validation($orderId, $customFieldList, $rsUser)
+    {
+        if (!$this->customFieldsValidate($customFieldList)) {
+            error_log(sprintf('[Order - %s] Ошибка заполенния дополнительных полей', $orderId));
+            return false;
+        }
 
-      if (!$this->userValidate($rsUser)) {
-          error_log(sprintf('[Order - %s] Ошибка валидации пользователя', $orderId));
-          return false;
-      }
-      return true;
-    }
-
-    private function customFieldsValidate($customFieldList) {
-      foreach (array('kkd_address', 'kkd_date', 'kkd_time_start', 'kkd_time_end') as $key) {
-          if (empty($customFieldList[$key])) {
-              error_log(sprintf('Дополнительное поле "%s" для модуля "komtet.delivery" не установлено', $key));
-              return false;
-          }
-      }
-      return true;
-    }
-
-    private function optionsValidate($options) {
-      foreach (array('key', 'secret', 'tax_system') as $key) {
-          if (empty($options[$key])) {
-              error_log(sprintf('Настройка "%s" для модуля "komtet.delivery" не найдена', $key));
-              return false;
-          }
+        if (!$this->userValidate($rsUser)) {
+            error_log(sprintf('[Order - %s] Ошибка валидации пользователя', $orderId));
+            return false;
+        }
         return true;
-      }
     }
 
-    private function userValidate($user) {
+    private function customFieldsValidate($customFieldList)
+    {
+        foreach (array('kkd_address', 'kkd_date', 'kkd_time_start', 'kkd_time_end') as $key) {
+            if (empty($customFieldList[$key])) {
+                error_log(sprintf('Дополнительное поле "%s" для модуля "komtet.delivery" не установлено', $key));
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private function optionsValidate($options)
+    {
+        foreach (array('key', 'secret', 'tax_system') as $key) {
+            if (empty($options[$key])) {
+                error_log(sprintf('Настройка "%s" для модуля "komtet.delivery" не найдена', $key));
+                return false;
+            }
+            return true;
+        }
+    }
+
+    private function userValidate($user)
+    {
         if (empty($user['PERSONAL_PHONE'])) {
             error_log(sprintf('У пользователя "%s" не указан номер телефона', $user['ID']));
             return false;

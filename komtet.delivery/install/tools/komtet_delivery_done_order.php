@@ -6,8 +6,8 @@ if ($_SERVER['REQUEST_METHOD'] != 'POST') {
     exit();
 }
 
-require $_SERVER['DOCUMENT_ROOT'].'/bitrix/modules/main/include/prolog_before.php';
-require $_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/komtet.delivery/include.php";
+require $_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/main/include/prolog_before.php';
+require $_SERVER["DOCUMENT_ROOT"] . "/bitrix/modules/komtet.delivery/include.php";
 
 try {
     KomtetDelivery::doneOrder($_GET['ORDER_ID']);

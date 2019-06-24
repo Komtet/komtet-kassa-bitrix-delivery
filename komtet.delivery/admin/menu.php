@@ -15,7 +15,7 @@ return array(
         array(
             'text' => GetMessage('KOMTETDELIVERY_MENU_REPORTS_TEXT'),
             'title' => GetMessage('KOMTETDELIVERY_MENU_REPORTS_TEXT'),
-            'url' => 'komtet_delivery_reports.php?lang='.LANGUAGE_ID
+            'url' => 'komtet_delivery_reports.php?lang=' . LANGUAGE_ID
         )
     )
 );
