@@ -56,6 +56,7 @@ class KomtetDeliveryD7
         $this->modGroupName = "КОМТЕТ Касса Доставка";
         $this->orderStatus = $options['order_status'];
         $this->deliveryStatus = $options['delivery_status'];
+        $this->deliveryType = $options['delivery_type'];
         $this->payStatus = PAYSTATUS;
     }
 
@@ -69,7 +70,8 @@ class KomtetDeliveryD7
             'tax_system' => intval(COption::GetOptionInt($moduleID, 'tax_system')),
             'default_courier' => intval(COption::GetOptionInt($moduleID, 'default_courier')),
             'order_status' => COption::GetOptionString($moduleID, 'order_status'),
-            'delivery_status' => COption::GetOptionString($moduleID, 'delivery_status')
+            'delivery_status' => COption::GetOptionString($moduleID, 'delivery_status'),
+            'delivery_type' => COption::GetOptionString($moduleID, 'delivery_type'),
         );
 
         return $result;
@@ -97,6 +99,9 @@ class KomtetDeliveryD7
         if (!$order->isAllowDelivery()) {
             return false;
         }
+        $shipmentCollection = $order->getShipmentCollection();
+        echo ($this->deliveryType);
+        die();
 
         $customFields = CSaleOrderPropsValue::GetOrderProps($orderId);
         while ($customField = $customFields->Fetch()) {
@@ -131,10 +136,9 @@ class KomtetDeliveryD7
 
         $positions = $order->getBasket();
         foreach ($positions as $position) {
+            $itemVatRate = Vat::RATE_NO;
             if ($this->taxSystem == TaxSystem::COMMON) {
                 $itemVatRate = strval(round(floatval($position->getField('VAT_RATE')) * 100, 2));
-            } else {
-                $itemVatRate = Vat::RATE_NO;
             }
 
             $orderDelivery->addPosition(new OrderPosition([
@@ -148,17 +152,11 @@ class KomtetDeliveryD7
             ]));
         }
 
-        $shipmentCollection = $order->getShipmentCollection();
         foreach ($shipmentCollection as $shipment) {
             if ($shipment->getPrice() > 0.0) {
-                if (version_compare(CModule::CreateModuleObject('sale')->MODULE_VERSION, '17.4.0', '>')) {
-                    if ($this->taxSystem == TaxSystem::COMMON) {
-                        $shipmentVatRate = round(floatval($shipment->getVatRate()), 2);
-                    } else {
-                        $shipmentVatRate = Vat::RATE_NO;
-                    }
-                } else {
-                    $shipmentVatRate = Vat::RATE_NO;
+                $shipmentVatRate = Vat::RATE_NO;
+                if ($this->taxSystem == TaxSystem::COMMON && var_dump(method_exists($shipment, 'getVatRate'))) {
+                    $shipmentVatRate = round(floatval($shipment->getVatRate()), 2);
                 }
 
                 $orderDelivery->addPosition(new OrderPosition([

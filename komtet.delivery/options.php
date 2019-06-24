@@ -32,10 +32,12 @@ if ($REQUEST_METHOD == 'POST' && check_bitrix_sessid()) {
         'tax_system' => 'integer',
         'default_courier' => 'integer',
         'order_status' => 'string',
-        'delivery_status' => 'string'
+        'delivery_status' => 'string',
+        'delivery_type' => 'integer'
     );
     foreach ($data as $key => $type) {
         $value = filter_input(INPUT_POST, strtoupper($key));
+        echo ($key . "---" . $value . "\n");
         if ($type == 'string') {
             COption::SetOptionString($moduleId, $key, $value);
         } else if ($type == 'bool') {
@@ -120,11 +122,25 @@ if (CModule::IncludeModule("sale")) {
         )
     );
 
+    $deliveryTypes = CSaleDelivery::GetList(
+        array(),
+        array(),
+        false,
+        false,
+        array("ID", "NAME")
+    );
+
     while ($orderStatus = $orderStatuses->Fetch()) {
         $orderList[$orderStatus["STATUS_ID"]] = $orderStatus["NAME"];
     }
+
     while ($deliveryStatus = $deliveryStatuses->Fetch()) {
-        $deliveryList[$deliveryStatus["STATUS_ID"]] = $deliveryStatus["NAME"];
+        $deliveryStatusList[$deliveryStatus["STATUS_ID"]] = $deliveryStatus["NAME"];
+    }
+
+    $deliveryTypeList[0] = GetMessage("KOMTETDELIVERY_OPTIONS_DEFAULT_NAME");
+    while ($deliveryType = $deliveryTypes->Fetch()) {
+        $deliveryTypeList[$deliveryType["ID"]] = $deliveryType["NAME"];
     }
 
     $form->AddDropDownField(
@@ -139,8 +155,16 @@ if (CModule::IncludeModule("sale")) {
         'DELIVERY_STATUS',
         GetMessage('KOMTETDELIVERY_OPTIONS_DELIVERY_STATUS'),
         true,
-        $deliveryList,
+        $deliveryStatusList,
         COption::GetOptionString($moduleId, 'delivery_status')
+    );
+
+    $form->AddDropDownField(
+        'DELIVERY_TYPE',
+        GetMessage('KOMTETDELIVERY_OPTIONS_DELIVERY_TYPE'),
+        true,
+        $deliveryTypeList,
+        COption::GetOptionString($moduleId, 'delivery_type')
     );
 }
 
@@ -155,58 +179,31 @@ if (
 
     $courierManager = new CourierManager($client);
     try {
-        $couriers = array_map(function ($courier) {
-            return array(
-                'id' => $courier['id'],
-                'name' => $courier['name']
-            );
-        }, $courierManager->getCouriers()['couriers']);
+        $kk_couriers = $courierManager->getCouriers()['couriers'];
     } catch (Exception $e) {
         error_log(sprintf('Ошибка получения списка доступных курьеров. Exception: %s', $e));
     }
 
-    if ($couriers) {
-        function AddCourierDropDownField($form, $id, $content, $required, $arSelect, $value = false, $arParams = array())
-        {
-            if ($value === false) {
-                $value = $form->arFieldValues[$id];
-            }
+    if ($kk_couriers) {
+        $couriersList[0] = GetMessage('KOMTETDELIVERY_OPTIONS_DEFAULT_NAME');
 
-            $html = '<select name="' . $id . '"';
-            foreach ($arParams as $param) {
-                $html .= ' ' . $param;
-            }
-            $html .= '>';
-
-            $html .= '<option value="0"' . ($value === 0 ? ' selected' : '') . '>' . "Не выбрано" . '</option>';
-            foreach ($arSelect as $key => $val) {
-                $html .= '<option value="' . htmlspecialcharsbx($val['id']) . '"' . ($value == $val['id'] ? ' selected' : '') . '>' . htmlspecialcharsex($val['name']) . '</option>';
-            }
-            $html .= '</select>';
-
-            $form->tabs[$form->tabIndex]["FIELDS"][$id] = array(
-                "id" => $id,
-                "required" => $required,
-                "content" => $content,
-                "html" => '<td width="40%">' . ($required ? '<span class="adm-required-field">' . $form->GetCustomLabelHTML($id, $content) . '</span>' : $form->GetCustomLabelHTML($id, $content)) . '</td><td>' . $html . '</td>',
-                "hidden" => '<input type="hidden" name="' . $id . '" value="' . htmlspecialcharsbx($value) . '">',
-            );
+        foreach ($kk_couriers as $kk_courier) {
+            $couriersList[$kk_courier['id']] = $kk_courier['name'];
         }
 
-        AddCourierDropDownField(
-            $form,
+        $form->AddDropDownField(
             'DEFAULT_COURIER',
             GetMessage('KOMTETDELIVERY_OPTIONS_DEFAULT_COURIER'),
             true,
-            $couriers,
+            $couriersList,
             COption::GetOptionString($moduleId, 'default_courier')
         );
     }
 }
 
 $form->Buttons(array(
-    'disabled' => false,
-    'back_url' => (empty($back_url) ? 'settings.php?lang=' . LANG : $back_url)
+    'disabled ' => false,
+    'back_url' => (empty($backurl)  ? ' settings.php?lang=' . LANG : $back_url)
 ));
 
 $form->Show();

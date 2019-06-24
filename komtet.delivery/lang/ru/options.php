@@ -14,3 +14,5 @@ $MESS['KOMTETDELIVERY_OPTIONS_TS_PATENT'] = 'Патент';
 
 $MESS['KOMTETDELIVERY_OPTIONS_ORDER_STATUS'] = 'После доставки выставлять статус Заказа';
 $MESS['KOMTETDELIVERY_OPTIONS_DELIVERY_STATUS'] = 'После доставки выставлять статус Доставки';
+$MESS['KOMTETDELIVERY_OPTIONS_DELIVERY_TYPE'] = 'Служба доставки';
+$MESS['KOMTETDELIVERY_OPTIONS_DEFAULT_NAME'] = 'Не выбрано';
