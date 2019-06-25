@@ -2,17 +2,18 @@
 
 use Bitrix\Main\UserTable;
 use Bitrix\Sale\Order as OrderTable;
-use Bitrix\Sale\Payment;
 use Komtet\KassaSdk\Exception\SdkException;
 use Komtet\KassaSdk\Client;
 use Komtet\KassaSdk\Order;
 use Komtet\KassaSdk\OrderManager;
 use Komtet\KassaSdk\OrderPosition;
+use Komtet\KassaSdk\Payment;
 use Komtet\KassaSdk\TaxSystem;
 use Komtet\KassaSdk\Vat;
 
 const MEASURE_NAME = 'шт';
 const PAYSTATUS = 'Y';
+const IS_CASH = 'Y';
 
 class KomtetDelivery
 {
@@ -57,6 +58,7 @@ class KomtetDeliveryD7
         $this->orderStatus = $options['order_status'];
         $this->deliveryStatus = $options['delivery_status'];
         $this->deliveryType = $options['delivery_type'];
+        $this->paySystems = $options['pay_systems'];
         $this->payStatus = PAYSTATUS;
     }
 
@@ -72,9 +74,21 @@ class KomtetDeliveryD7
             'order_status' => COption::GetOptionString($moduleID, 'order_status'),
             'delivery_status' => COption::GetOptionString($moduleID, 'delivery_status'),
             'delivery_type' => COption::GetOptionString($moduleID, 'delivery_type'),
+            'pay_systems' => json_decode(COption::GetOptionString($moduleID, 'pay_systems'))
         );
 
         return $result;
+    }
+
+    protected function getPaymentType($paySystemID)
+    {
+        global $DB;
+        $sql = "SELECT * FROM b_sale_pay_system_action WHERE PAY_SYSTEM_ID = $paySystemID";
+        $res = $DB->Query($sql);
+        if ($res->Fetch()['IS_CASH'] === IS_CASH) {
+            return Payment::TYPE_CASH;
+        }
+        return Payment::TYPE_CARD;
     }
 
     public function createOrder($orderId)
@@ -99,9 +113,6 @@ class KomtetDeliveryD7
         if (!$order->isAllowDelivery()) {
             return false;
         }
-        $shipmentCollection = $order->getShipmentCollection();
-        echo ($this->deliveryType);
-        die();
 
         $customFields = CSaleOrderPropsValue::GetOrderProps($orderId);
         while ($customField = $customFields->Fetch()) {
@@ -113,7 +124,10 @@ class KomtetDeliveryD7
         $userId = $order->getUserId();
         $rsUser = UserTable::getById($userId)->fetch();
 
-        if (!$this->validation($orderId, $customFieldList, $rsUser)) {
+        $shipmentCollection = $order->getShipmentCollection();
+        $paymentSystemCollection = $order->getPaySystemIdList();
+
+        if (!$this->validation($orderId, $customFieldList, $rsUser, $shipmentCollection, $paymentSystemCollection)) {
             KomtetDeliveryReportsTable::update(
                 $kOrderID,
                 array("request" => 'validation error')
@@ -121,7 +135,14 @@ class KomtetDeliveryD7
             return false;
         }
 
-        $orderDelivery = new Order($order->getId(), 'new', $this->taxSystem, $order->isPaid());
+        $orderDelivery = new Order(
+            $order->getId(),
+            'new',
+            $this->taxSystem,
+            $order->isPaid(),
+            0,
+            $this->getPaymentType($paymentSystemCollection[0])
+        );
         $orderDelivery->setClient(
             $customFieldList['kkd_address'],
             $rsUser['PERSONAL_PHONE'],
@@ -153,14 +174,15 @@ class KomtetDeliveryD7
         }
 
         foreach ($shipmentCollection as $shipment) {
-            if ($shipment->getPrice() > 0.0) {
+            if ($shipment->getPrice() > 0.0 and $shipment->getDeliveryId() === $this->deliveryType) {
+
                 $shipmentVatRate = Vat::RATE_NO;
                 if ($this->taxSystem == TaxSystem::COMMON && var_dump(method_exists($shipment, 'getVatRate'))) {
                     $shipmentVatRate = round(floatval($shipment->getVatRate()), 2);
                 }
 
                 $orderDelivery->addPosition(new OrderPosition([
-                    'oid' => $shipment->getId(),
+                    'oid' => $shipment->getDeliveryId(),
                     'name' => mb_convert_encoding($shipment->getField('DELIVERY_NAME'), 'UTF-8', LANG_CHARSET),
                     'price' => round($shipment->getPrice(), 2),
                     'quantity' => 1,
@@ -180,15 +202,20 @@ class KomtetDeliveryD7
 
         $scheme = array_key_exists('HTTPS', $_SERVER) && strtolower($_SERVER['HTTPS']) !== 'off' ? 'https' : 'http';
         $url = sprintf('%s://%s/%s/%s/', $scheme, $_SERVER['SERVER_NAME'], "done_order", $orderId);
-        $orderDelivery->setСallbackUrl($url);
+        $orderDelivery->setCallbackUrl($url);
 
         $normalDate = implode("-", array_reverse(explode(".", $customFieldList["kkd_date"])));
         $startDate = sprintf("%s %s", $normalDate, $customFieldList["kkd_time_start"]);
         $endDate = sprintf("%s %s", $normalDate, $customFieldList["kkd_time_end"]);
         $orderDelivery->setDeliveryTime($startDate, $endDate);
 
+        $kkd_order = KomtetDeliveryReportsTable::getByID($kOrderID)->Fetch();
         try {
-            $response = $this->manager->createOrder($orderDelivery);
+            if (is_null($kkd_order['kk_id'])) {
+                $response = $this->manager->createOrder($orderDelivery);
+            } else {
+                $response = $this->manager->updateOrder($kkd_order['kk_id'], $orderDelivery);
+            }
         } catch (SdkException $e) {
             error_log(sprintf('Ошибка создания заказа: %s', $e->getMessage()));
         } finally {
@@ -197,7 +224,7 @@ class KomtetDeliveryD7
                 array(
                     "request" => json_encode($orderDelivery->asArray()),
                     "response" => json_encode($response),
-                    "kk_id" => $response['id'] !== null ? $response['id'] : null
+                    "kk_id" => !is_null($kkd_order['kk_id']) ? $kkd_order['kk_id'] : $response['id']
                 )
             );
         }
@@ -224,7 +251,7 @@ class KomtetDeliveryD7
         $order->save();
     }
 
-    private function validation($orderId, $customFieldList, $rsUser)
+    private function validation($orderId, $customFieldList, $rsUser, $shipmentCollection, $paymentSystemCollection)
     {
         if (!$this->customFieldsValidate($customFieldList)) {
             error_log(sprintf('[Order - %s] Ошибка заполенния дополнительных полей', $orderId));
@@ -233,6 +260,16 @@ class KomtetDeliveryD7
 
         if (!$this->userValidate($rsUser)) {
             error_log(sprintf('[Order - %s] Ошибка валидации пользователя', $orderId));
+            return false;
+        }
+
+        if (!$this->shipmentValidate($shipmentCollection)) {
+            error_log(sprintf('[Order - %s] Ошибка выбора способа доставки', $orderId));
+            return false;
+        }
+
+        if (!$this->paymentSystemValidate($paymentSystemCollection)) {
+            error_log(sprintf('[Order - %s] Ошибка выбора способа оплаты', $orderId));
             return false;
         }
         return true;
@@ -267,5 +304,27 @@ class KomtetDeliveryD7
             return false;
         }
         return true;
+    }
+
+    private function shipmentValidate($shipmentCollection)
+    {
+        foreach ($shipmentCollection as $shipment) {
+            if ($shipment->getDeliveryId() === $this->deliveryType) {
+                return true;
+            }
+        }
+        error_log(sprintf('Выбранный тип доставки не установлен в настройках'));
+        return false;
+    }
+
+    private function paymentSystemValidate($paymentSystemCollection)
+    {
+        foreach ($paymentSystemCollection as $paymentSystem) {
+            if (in_array($paymentSystem, $this->paySystems)) {
+                return true;
+            }
+        }
+        error_log(sprintf('Выбранный тип оплаты не установлен в настройках'));
+        return false;
     }
 }
