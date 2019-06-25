@@ -125,9 +125,9 @@ class KomtetDeliveryD7
         $rsUser = UserTable::getById($userId)->fetch();
 
         $shipmentCollection = $order->getShipmentCollection();
-        $paymentSystemCollection = $order->getPaySystemIdList();
+        $paymentSystemIdList = $order->getPaySystemIdList();
 
-        if (!$this->validation($orderId, $customFieldList, $rsUser, $shipmentCollection, $paymentSystemCollection)) {
+        if (!$this->validation($orderId, $customFieldList, $rsUser, $shipmentCollection, $paymentSystemIdList)) {
             KomtetDeliveryReportsTable::update(
                 $kOrderID,
                 array("request" => 'validation error')
@@ -141,7 +141,7 @@ class KomtetDeliveryD7
             $this->taxSystem,
             $order->isPaid(),
             0,
-            $this->getPaymentType($paymentSystemCollection[0])
+            $this->getPaymentType($paymentSystemIdList)
         );
         $orderDelivery->setClient(
             $customFieldList['kkd_address'],
@@ -177,8 +177,8 @@ class KomtetDeliveryD7
             if ($shipment->getPrice() > 0.0 and $shipment->getDeliveryId() === $this->deliveryType) {
 
                 $shipmentVatRate = Vat::RATE_NO;
-                if ($this->taxSystem == TaxSystem::COMMON && var_dump(method_exists($shipment, 'getVatRate'))) {
-                    $shipmentVatRate = round(floatval($shipment->getVatRate()), 2);
+                if ($this->taxSystem === TaxSystem::COMMON and method_exists($shipment, 'getVatRate')) {
+                    $shipmentVatRate = round(floatval($shipment->getVatRate() * 100), 2);
                 }
 
                 $orderDelivery->addPosition(new OrderPosition([
@@ -251,7 +251,7 @@ class KomtetDeliveryD7
         $order->save();
     }
 
-    private function validation($orderId, $customFieldList, $rsUser, $shipmentCollection, $paymentSystemCollection)
+    private function validation($orderId, $customFieldList, $rsUser, $shipmentCollection, &$paymentSystemIdList)
     {
         if (!$this->customFieldsValidate($customFieldList)) {
             error_log(sprintf('[Order - %s] Ошибка заполенния дополнительных полей', $orderId));
@@ -268,7 +268,7 @@ class KomtetDeliveryD7
             return false;
         }
 
-        if (!$this->paymentSystemValidate($paymentSystemCollection)) {
+        if (!$this->paymentSystemValidate($paymentSystemIdList)) {
             error_log(sprintf('[Order - %s] Ошибка выбора способа оплаты', $orderId));
             return false;
         }
@@ -317,10 +317,11 @@ class KomtetDeliveryD7
         return false;
     }
 
-    private function paymentSystemValidate($paymentSystemCollection)
+    private function paymentSystemValidate(&$paymentSystemIdList)
     {
-        foreach ($paymentSystemCollection as $paymentSystem) {
-            if (in_array($paymentSystem, $this->paySystems)) {
+        foreach ($paymentSystemIdList as $paymentSystemId) {
+            if (in_array($paymentSystemId, $this->paySystems)) {
+                $paymentSystemIdList = $paymentSystemId;
                 return true;
             }
         }
