@@ -1,7 +1,6 @@
 <?php
 IncludeModuleLangFile(__FILE__);
 
-const KOMTETDELIVERY_MODULE_URL = 'https://kassa.komtet.ru';
 
 class komtet_delivery extends CModule
 {
@@ -19,7 +18,7 @@ class komtet_delivery extends CModule
         $this->MODULE_NAME = GetMessage('KOMTETDELIVERY_MODULE_NAME');
         $this->MODULE_DESCRIPTION = GetMessage('KOMTETDELIVERY_MODULE_DESCRIPTION');
         $this->PARTNER_NAME = GetMessage('KOMTETDELIVERY_PARTNER_NAME');
-        $this->PARTNER_URI = KOMTETDELIVERY_MODULE_URL;
+        $this->PARTNER_URI = 'https://kassa.komtet.ru';
         $this->INSTALL_DIR = dirname(__file__);
         $this->GROUP_NAME = GetMessage('MOD_GROUP_NAME');
         $arModuleVersion = array();
