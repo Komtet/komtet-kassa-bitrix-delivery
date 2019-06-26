@@ -159,7 +159,7 @@ class KomtetDeliveryD7
         foreach ($positions as $position) {
             $itemVatRate = Vat::RATE_NO;
             if ($this->taxSystem == TaxSystem::COMMON) {
-                $itemVatRate = strval(round(floatval($position->getField('VAT_RATE')) * 100, 2));
+                $itemVatRate = round(floatval($position->getField('VAT_RATE')), 2);
             }
 
             $orderDelivery->addPosition(new OrderPosition([
@@ -178,7 +178,7 @@ class KomtetDeliveryD7
 
                 $shipmentVatRate = Vat::RATE_NO;
                 if ($this->taxSystem === TaxSystem::COMMON and method_exists($shipment, 'getVatRate')) {
-                    $shipmentVatRate = round(floatval($shipment->getVatRate() * 100), 2);
+                    $shipmentVatRate = round(floatval($shipment->getVatRate()), 2);
                 }
 
                 $orderDelivery->addPosition(new OrderPosition([
@@ -187,7 +187,7 @@ class KomtetDeliveryD7
                     'price' => round($shipment->getPrice(), 2),
                     'quantity' => 1,
                     'total' => round($shipment->getPrice(), 2),
-                    'vat' => strval($shipmentVatRate),
+                    'vat' => $shipmentVatRate,
                     'measure_name' => MEASURE_NAME,
                 ]));
             }
