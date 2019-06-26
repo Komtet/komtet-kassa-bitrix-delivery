@@ -19,7 +19,7 @@ Loader::includeModule('sale');
 Loc::loadMessages(__FILE__);
 
 $form = new CAdminForm('tabControl', array(array(
-    'DIV' => $moduleId.'-options',
+    'DIV' => $moduleId . '-options',
     'TAB' => GetMessage('MAIN_TAB_SET'),
     'TITLE' => GetMessage('MAIN_TAB_TITLE_SET')
 )));
@@ -32,7 +32,9 @@ if ($REQUEST_METHOD == 'POST' && check_bitrix_sessid()) {
         'tax_system' => 'integer',
         'default_courier' => 'integer',
         'order_status' => 'string',
-        'delivery_status' => 'string'
+        'delivery_status' => 'string',
+        'delivery_type' => 'integer',
+        'pay_systems' => 'array'
     );
     foreach ($data as $key => $type) {
         $value = filter_input(INPUT_POST, strtoupper($key));
@@ -42,6 +44,9 @@ if ($REQUEST_METHOD == 'POST' && check_bitrix_sessid()) {
             COption::SetOptionInt($moduleId, $key, $value === null ? 0 : 1);
         } else if ($type == 'integer') {
             COption::SetOptionInt($moduleId, $key, $value);
+        } else if ($type == 'array') {
+            $value = filter_input(INPUT_POST, strtoupper($key), FILTER_DEFAULT, FILTER_FORCE_ARRAY);
+            COption::SetOptionString($moduleId, $key, json_encode($value));
         }
     }
 }
@@ -54,7 +59,7 @@ $form->BeginEpilogContent();
 echo bitrix_sessid_post();
 $form->EndEpilogContent();
 
-$form->Begin(array('FORM_ACTION' => '/bitrix/admin/settings.php?'.$queryData));
+$form->Begin(array('FORM_ACTION' => '/bitrix/admin/settings.php?' . $queryData));
 
 $form->BeginNextFormTab();
 
@@ -107,7 +112,7 @@ if (CModule::IncludeModule("sale")) {
     $orderStatuses = StatusLangTable::getList(
         array(
             'select' => array('*'),
-            'filter' => array('STATUS.TYPE'=>'O'),
+            'filter' => array('STATUS.TYPE' => 'O'),
             'select' => array('STATUS_ID', 'NAME')
         )
     );
@@ -115,16 +120,30 @@ if (CModule::IncludeModule("sale")) {
     $deliveryStatuses = StatusLangTable::getList(
         array(
             'select' => array('*'),
-            'filter' => array('STATUS.TYPE'=>'D'),
+            'filter' => array('STATUS.TYPE' => 'D'),
             'select' => array('STATUS_ID', 'NAME')
         )
+    );
+
+    $deliveryTypes = CSaleDelivery::GetList(
+        array(),
+        array(),
+        false,
+        false,
+        array("ID", "NAME")
     );
 
     while ($orderStatus = $orderStatuses->Fetch()) {
         $orderList[$orderStatus["STATUS_ID"]] = $orderStatus["NAME"];
     }
+
     while ($deliveryStatus = $deliveryStatuses->Fetch()) {
-        $deliveryList[$deliveryStatus["STATUS_ID"]] = $deliveryStatus["NAME"];
+        $deliveryStatusList[$deliveryStatus["STATUS_ID"]] = $deliveryStatus["NAME"];
+    }
+
+    $deliveryTypeList[0] = GetMessage("KOMTETDELIVERY_OPTIONS_DEFAULT_NAME");
+    while ($deliveryType = $deliveryTypes->Fetch()) {
+        $deliveryTypeList[$deliveryType["ID"]] = $deliveryType["NAME"];
     }
 
     $form->AddDropDownField(
@@ -139,70 +158,92 @@ if (CModule::IncludeModule("sale")) {
         'DELIVERY_STATUS',
         GetMessage('KOMTETDELIVERY_OPTIONS_DELIVERY_STATUS'),
         true,
-        $deliveryList,
+        $deliveryStatusList,
         COption::GetOptionString($moduleId, 'delivery_status')
     );
 
+    $form->AddDropDownField(
+        'DELIVERY_TYPE',
+        GetMessage('KOMTETDELIVERY_OPTIONS_DELIVERY_TYPE'),
+        true,
+        $deliveryTypeList,
+        COption::GetOptionString($moduleId, 'delivery_type')
+    );
 }
 
-if (COption::GetOptionString($moduleId, 'shop_id') and
-    COption::GetOptionString($moduleId, 'secret_key')) {
-  $client = new Client(COption::GetOptionString($moduleId, 'shop_id'),
-                       COption::GetOptionString($moduleId, 'secret_key'));
+if (
+    COption::GetOptionString($moduleId, 'shop_id') and
+    COption::GetOptionString($moduleId, 'secret_key')
+) {
+    $client = new Client(
+        COption::GetOptionString($moduleId, 'shop_id'),
+        COption::GetOptionString($moduleId, 'secret_key')
+    );
 
-  $courierManager = new CourierManager($client);
-  try{
-      $couriers = array_map(function($courier){
-        return array('id' => $courier['id'],
-                     'name' => $courier['name']);
-      }, $courierManager->getCouriers()['couriers']);
-  }
-  catch (Exception $e){
-      error_log(sprintf('Ошибка получения списка доступных курьеров. Exception: %s', $e));
-  }
+    $courierManager = new CourierManager($client);
+    try {
+        $kk_couriers = $courierManager->getCouriers()['couriers'];
+    } catch (Exception $e) {
+        error_log(sprintf('Ошибка получения списка доступных курьеров. Exception: %s', $e));
+    }
 
-  if ($couriers) {
-      function AddCourierDropDownField($form, $id, $content, $required, $arSelect, $value=false, $arParams=array())
-      {
-          if ($value === false) {
-              $value = $form->arFieldValues[$id];
-          }
+    if ($kk_couriers) {
+        $couriersList[0] = GetMessage('KOMTETDELIVERY_OPTIONS_DEFAULT_NAME');
 
-          $html = '<select name="'.$id.'"';
-          foreach ($arParams as $param) {
-              $html .= ' '.$param;
-          }
-          $html .= '>';
+        foreach ($kk_couriers as $kk_courier) {
+            $couriersList[$kk_courier['id']] = $kk_courier['name'];
+        }
 
-          $html .= '<option value="0"'.($value === 0 ? ' selected': '').'>'."Не выбрано".'</option>';
-          foreach ($arSelect as $key => $val) {
-              $html .= '<option value="'.htmlspecialcharsbx($val['id']).'"'.($value == $val['id']? ' selected': '').'>'.htmlspecialcharsex($val['name']).'</option>';
-          }
-          $html .= '</select>';
-
-          $form->tabs[$form->tabIndex]["FIELDS"][$id] = array(
-              "id" => $id,
-              "required" => $required,
-              "content" => $content,
-              "html" => '<td width="40%">'.($required? '<span class="adm-required-field">'.$form->GetCustomLabelHTML($id, $content).'</span>': $form->GetCustomLabelHTML($id, $content)).'</td><td>'.$html.'</td>',
-              "hidden" => '<input type="hidden" name="'.$id.'" value="'.htmlspecialcharsbx($value).'">',
-          );
-      }
-
-      AddCourierDropDownField(
-          $form,
-          'DEFAULT_COURIER',
-          GetMessage('KOMTETDELIVERY_OPTIONS_DEFAULT_COURIER'),
-          true,
-          $couriers,
-          COption::GetOptionString($moduleId, 'default_courier')
-      );
-  }
+        $form->AddDropDownField(
+            'DEFAULT_COURIER',
+            GetMessage('KOMTETDELIVERY_OPTIONS_DEFAULT_COURIER'),
+            true,
+            $couriersList,
+            COption::GetOptionString($moduleId, 'default_courier')
+        );
+    }
 }
+
+function AddMultiSelectField($form, $id, $content, $required, $arSelect, $value = false, $arParams = array())
+{
+    if ($value === false)
+        $value = $form->arFieldValues[$id];
+
+    $html = '<select name="' . $id . '" multiple';
+    foreach ($arParams as $param)
+        $html .= ' ' . $param;
+    $html .= '>';
+
+    foreach ($arSelect as $key => $val)
+        $html .= '<option value="' . htmlspecialcharsbx($key) . '"' . (in_array($key, $value) ? ' selected' : '') . '>' . htmlspecialcharsex($val) . '</option>';
+    $html .= '</select>';
+
+    $form->tabs[$form->tabIndex]["FIELDS"][$id] = array(
+        "id" => $id,
+        "required" => $required,
+        "content" => $content,
+        "html" => '<td width="40%">' . ($required ? '<span class="adm-required-field">' . $form->GetCustomLabelHTML($id, $content) . '</span>' : $form->GetCustomLabelHTML($id, $content)) . '</td><td>' . $html . '</td>',
+        "hidden" => '<input type="hidden" name="' . $id . '" value="' . htmlspecialcharsbx($value) . '">',
+    );
+}
+
+$arPaySystem = array();
+$resPaySystem = CSalePaySystem::GetList($arOrder = array("SORT" => "ASC", "NAME" => "ASC"));
+while ($ptype = $resPaySystem->Fetch()) {
+    $arPaySystem[$ptype["ID"]] = $ptype["NAME"];
+}
+AddMultiSelectField(
+    $form,
+    'PAY_SYSTEMS[]',
+    GetMessage('KOMTETDELIVERY_OPTIONS_PAY_SYSTEMS'),
+    false,
+    $arPaySystem,
+    json_decode(COption::GetOptionString($moduleId, 'pay_systems'))
+);
 
 $form->Buttons(array(
-    'disabled' => false,
-    'back_url' => (empty($back_url) ? 'settings.php?lang=' . LANG : $back_url)
+    'disabled ' => false,
+    'back_url' => (empty($backurl)  ? ' settings.php?lang=' . LANG : $back_url)
 ));
 
 $form->Show();
