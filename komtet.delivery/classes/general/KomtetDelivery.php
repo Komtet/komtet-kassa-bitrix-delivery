@@ -236,11 +236,21 @@ class KomtetDeliveryD7
             return false;
         }
 
-        $order = OrderTable::load($orderId);
+        if (CModule::IncludeModule("komtet.kassa")) {
+            $ID = KomtetKassaReportsTable::getRow(array(
+                'select' => array('*'),
+                'filter' => array('order_id' => $orderId)
+            ));
 
-        CSaleOrder::PayOrder($orderId, $this->payStatus);
-        CSaleOrder::StatusOrder($orderId, $this->orderStatus);
-        $order->setField("ADDITIONAL_INFO", Date(CDatabase::DateFormatToPHP(CLang::GetDateFormat("SHORT", LANG))));
+            if (!$ID) {
+                KomtetKassaReportsTable::add([
+                    'order_id' => $orderId,
+                    'state' => 0
+                ]);
+            }
+        }
+
+        $order = OrderTable::load($orderId);
 
         $shipments = $order->getShipmentCollection();
         foreach ($shipments as $shipment) {
@@ -249,6 +259,9 @@ class KomtetDeliveryD7
             }
         }
         $order->save();
+
+        CSaleOrder::PayOrder($orderId, $this->payStatus);
+        CSaleOrder::StatusOrder($orderId, $this->orderStatus);
     }
 
     private function validation($orderId, $customFieldList, $rsUser, $shipmentCollection, &$paymentSystemIdList)
