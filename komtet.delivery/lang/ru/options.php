@@ -4,7 +4,6 @@ $MESS['KOMTETDELIVERY_OPTIONS_SECRET_KEY'] = 'Секретный ключ';
 $MESS['KOMTETDELIVERY_OPTIONS_SHOULD_FORM'] = 'Формировать заявку на доставку при статусе "Доставка разрешена"';
 $MESS['KOMTETDELIVERY_OPTIONS_TAX_SYSTEM'] = 'Система налогооблажения';
 $MESS['KOMTETDELIVERY_OPTIONS_DEFAULT_COURIER'] = 'Курьер по умолчанию';
-$MESS['KOMTETDELIVERY_OPTIONS_PAY_SYSTEMS'] = 'Платежные системы';
 
 $MESS['KOMTETDELIVERY_OPTIONS_TS_COMMON'] = 'ОСН';
 $MESS['KOMTETDELIVERY_OPTIONS_TS_SIMPLIFIED_IN'] = 'УСН доход';

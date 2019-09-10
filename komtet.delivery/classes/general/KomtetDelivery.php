@@ -58,7 +58,6 @@ class KomtetDeliveryD7
         $this->orderStatus = $options['order_status'];
         $this->deliveryStatus = $options['delivery_status'];
         $this->deliveryType = $options['delivery_type'];
-        $this->paySystems = $options['pay_systems'];
         $this->payStatus = PAYSTATUS;
     }
 
@@ -74,7 +73,6 @@ class KomtetDeliveryD7
             'order_status' => COption::GetOptionString($moduleID, 'order_status'),
             'delivery_status' => COption::GetOptionString($moduleID, 'delivery_status'),
             'delivery_type' => COption::GetOptionString($moduleID, 'delivery_type'),
-            'pay_systems' => json_decode(COption::GetOptionString($moduleID, 'pay_systems'))
         );
 
         return $result;

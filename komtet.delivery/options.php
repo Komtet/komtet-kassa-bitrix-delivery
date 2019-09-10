@@ -34,7 +34,6 @@ if ($REQUEST_METHOD == 'POST' && check_bitrix_sessid()) {
         'order_status' => 'string',
         'delivery_status' => 'string',
         'delivery_type' => 'integer',
-        'pay_systems' => 'array'
     );
     foreach ($data as $key => $type) {
         $value = filter_input(INPUT_POST, strtoupper($key));
@@ -44,9 +43,6 @@ if ($REQUEST_METHOD == 'POST' && check_bitrix_sessid()) {
             COption::SetOptionInt($moduleId, $key, $value === null ? 0 : 1);
         } else if ($type == 'integer') {
             COption::SetOptionInt($moduleId, $key, $value);
-        } else if ($type == 'array') {
-            $value = filter_input(INPUT_POST, strtoupper($key), FILTER_DEFAULT, FILTER_FORCE_ARRAY);
-            COption::SetOptionString($moduleId, $key, json_encode($value));
         }
     }
 }
@@ -79,8 +75,8 @@ $form->AddEditField(
     GetMessage('KOMTETDELIVERY_OPTIONS_SECRET_KEY'),
     true,
     array(
-        'size' => 50,
-        'maxlength' => 255
+        'size' => 20,
+        'maxlength' => 255,
     ),
     COption::GetOptionString($moduleId, 'secret_key')
 );
@@ -172,8 +168,10 @@ if (CModule::IncludeModule("sale")) {
 }
 
 if (
-    COption::GetOptionString($moduleId, 'shop_id') and
-    COption::GetOptionString($moduleId, 'secret_key')
+    COption::GetOptionString($moduleId, 'shop_id') &&
+    COption::GetOptionString($moduleId, 'secret_key') &&
+    strlen(COption::GetOptionString($moduleId, 'shop_id')) >= 2 && 
+    strlen(COption::GetOptionString($moduleId, 'secret_key')) >= 2
 ) {
     $client = new Client(
         COption::GetOptionString($moduleId, 'shop_id'),
@@ -186,6 +184,7 @@ if (
     } catch (Exception $e) {
         error_log(sprintf('Ошибка получения списка доступных курьеров. Exception: %s', $e));
     }
+
 
     if ($kk_couriers) {
         $couriersList[0] = GetMessage('KOMTETDELIVERY_OPTIONS_DEFAULT_NAME');
@@ -204,42 +203,6 @@ if (
     }
 }
 
-function AddMultiSelectField($form, $id, $content, $required, $arSelect, $value = false, $arParams = array())
-{
-    if ($value === false)
-        $value = $form->arFieldValues[$id];
-
-    $html = '<select name="' . $id . '" multiple';
-    foreach ($arParams as $param)
-        $html .= ' ' . $param;
-    $html .= '>';
-
-    foreach ($arSelect as $key => $val)
-        $html .= '<option value="' . htmlspecialcharsbx($key) . '"' . (in_array($key, $value) ? ' selected' : '') . '>' . htmlspecialcharsex($val) . '</option>';
-    $html .= '</select>';
-
-    $form->tabs[$form->tabIndex]["FIELDS"][$id] = array(
-        "id" => $id,
-        "required" => $required,
-        "content" => $content,
-        "html" => '<td width="40%">' . ($required ? '<span class="adm-required-field">' . $form->GetCustomLabelHTML($id, $content) . '</span>' : $form->GetCustomLabelHTML($id, $content)) . '</td><td>' . $html . '</td>',
-        "hidden" => '<input type="hidden" name="' . $id . '" value="' . htmlspecialcharsbx($value) . '">',
-    );
-}
-
-$arPaySystem = array();
-$resPaySystem = CSalePaySystem::GetList($arOrder = array("SORT" => "ASC", "NAME" => "ASC"));
-while ($ptype = $resPaySystem->Fetch()) {
-    $arPaySystem[$ptype["ID"]] = $ptype["NAME"];
-}
-AddMultiSelectField(
-    $form,
-    'PAY_SYSTEMS[]',
-    GetMessage('KOMTETDELIVERY_OPTIONS_PAY_SYSTEMS'),
-    false,
-    $arPaySystem,
-    json_decode(COption::GetOptionString($moduleId, 'pay_systems'))
-);
 
 $form->Buttons(array(
     'disabled ' => false,
