@@ -21,5 +21,14 @@ start: ## Запустить контейнер
 stop: ## Остановить контейнер
 	@cd docker_env/ && docker stop bitrix
 
-.PHONY: help update build start stop
+release:  ## Архивировать для загрузки в маркет
+	@cp -ar komtet.delivery .last_version && \
+	tar\
+	 --exclude='.last_version/lib/komtet-kassa-php-sdk/.*'\
+	 --exclude='.last_version/lib/komtet-kassa-php-sdk/docker_env'\
+	 --exclude='.last_version/lib/komtet-kassa-php-sdk/tests'\
+	 -czvf .last_version.tar.gz .last_version/ && \
+	rm -rf .last_version
+
+.PHONY: help update build start stop release
 .DEFAULT_GOAL := help
