@@ -13,7 +13,6 @@ use Komtet\KassaSdk\Vat;
 
 const MEASURE_NAME = 'шт';
 const PAYSTATUS = 'Y';
-const IS_CASH = 'Y';
 
 class KomtetDelivery
 {
@@ -78,19 +77,8 @@ class KomtetDeliveryD7
         return $result;
     }
 
-    protected function getPaymentType($paySystemID)
-    {
-        global $DB;
-        $sql = "SELECT * FROM b_sale_pay_system_action WHERE PAY_SYSTEM_ID = $paySystemID";
-        $res = $DB->Query($sql);
-        if ($res->Fetch()['IS_CASH'] === IS_CASH) {
-            return Payment::TYPE_CASH;
-        }
-        return Payment::TYPE_CARD;
-    }
-
     public function createOrder($orderId)
-    {
+    {   
         $kOrderID = KomtetDeliveryReportsTable::getRow(array(
             'select' => array('*'),
             'filter' => array('order_id' => $orderId)
@@ -123,9 +111,8 @@ class KomtetDeliveryD7
         $rsUser = UserTable::getById($userId)->fetch();
 
         $shipmentCollection = $order->getShipmentCollection();
-        $paymentSystemIdList = $order->getPaySystemIdList();
 
-        if (!$this->validation($orderId, $customFieldList, $rsUser, $shipmentCollection, $paymentSystemIdList)) {
+        if (!$this->validation($orderId, $customFieldList, $rsUser, $shipmentCollection)) {
             KomtetDeliveryReportsTable::update(
                 $kOrderID,
                 array("request" => 'validation error')
@@ -139,7 +126,7 @@ class KomtetDeliveryD7
             $this->taxSystem,
             $order->isPaid(),
             0,
-            $this->getPaymentType($paymentSystemIdList)
+            Payment::TYPE_CARD
         );
         $orderDelivery->setClient(
             $customFieldList['kkd_address'],
@@ -157,7 +144,7 @@ class KomtetDeliveryD7
         foreach ($positions as $position) {
             $itemVatRate = Vat::RATE_NO;
             if ($this->taxSystem == TaxSystem::COMMON) {
-                $itemVatRate = round(floatval($position->getField('VAT_RATE')), 2);
+                $itemVatRate = strval(floatval($position->getField('VAT_RATE'))*100);
             }
 
             $orderDelivery->addPosition(new OrderPosition([
@@ -176,7 +163,7 @@ class KomtetDeliveryD7
 
                 $shipmentVatRate = Vat::RATE_NO;
                 if ($this->taxSystem === TaxSystem::COMMON and method_exists($shipment, 'getVatRate')) {
-                    $shipmentVatRate = round(floatval($shipment->getVatRate()), 2);
+                    $shipmentVatRate = strval(floatval($shipment->getVatRate())*100);
                 }
 
                 $orderDelivery->addPosition(new OrderPosition([
@@ -262,7 +249,7 @@ class KomtetDeliveryD7
         CSaleOrder::StatusOrder($orderId, $this->orderStatus);
     }
 
-    private function validation($orderId, $customFieldList, $rsUser, $shipmentCollection, &$paymentSystemIdList)
+    private function validation($orderId, $customFieldList, $rsUser, $shipmentCollection)
     {
         if (!$this->customFieldsValidate($customFieldList)) {
             error_log(sprintf('[Order - %s] Ошибка заполенния дополнительных полей', $orderId));
@@ -279,10 +266,6 @@ class KomtetDeliveryD7
             return false;
         }
 
-        if (!$this->paymentSystemValidate($paymentSystemIdList)) {
-            error_log(sprintf('[Order - %s] Ошибка выбора способа оплаты', $orderId));
-            return false;
-        }
         return true;
     }
 
@@ -325,18 +308,6 @@ class KomtetDeliveryD7
             }
         }
         error_log(sprintf('Выбранный тип доставки не установлен в настройках'));
-        return false;
-    }
-
-    private function paymentSystemValidate(&$paymentSystemIdList)
-    {
-        foreach ($paymentSystemIdList as $paymentSystemId) {
-            if (in_array($paymentSystemId, $this->paySystems)) {
-                $paymentSystemIdList = $paymentSystemId;
-                return true;
-            }
-        }
-        error_log(sprintf('Выбранный тип оплаты не установлен в настройках'));
         return false;
     }
 }
