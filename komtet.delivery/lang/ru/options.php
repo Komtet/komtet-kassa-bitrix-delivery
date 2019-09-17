@@ -1,18 +1,18 @@
 <?php
-$MESS['KOMTETDELIVERY_OPTIONS_SHOP_ID'] = 'Ð˜Ð´ÐµÐ½Ñ‚Ð¸Ñ„Ð¸ÐºÐ°Ñ‚Ð¾Ñ€ Ð¼Ð°Ð³Ð°Ð·Ð¸Ð½Ð°';
-$MESS['KOMTETDELIVERY_OPTIONS_SECRET_KEY'] = 'Ð¡ÐµÐºÑ€ÐµÑ‚Ð½Ñ‹Ð¹ ÐºÐ»ÑŽÑ‡';
-$MESS['KOMTETDELIVERY_OPTIONS_SHOULD_FORM'] = 'Ð¤Ð¾Ñ€Ð¼Ð¸Ñ€Ð¾Ð²Ð°Ñ‚ÑŒ Ð·Ð°ÑÐ²ÐºÑƒ Ð½Ð° Ð´Ð¾ÑÑ‚Ð°Ð²ÐºÑƒ Ð¿Ñ€Ð¸ ÑÑ‚Ð°Ñ‚ÑƒÑÐµ "Ð”Ð¾ÑÑ‚Ð°Ð²ÐºÐ° Ñ€Ð°Ð·Ñ€ÐµÑˆÐµÐ½Ð°"';
-$MESS['KOMTETDELIVERY_OPTIONS_TAX_SYSTEM'] = 'Ð¡Ð¸ÑÑ‚ÐµÐ¼Ð° Ð½Ð°Ð»Ð¾Ð³Ð¾Ð¾Ð±Ð»Ð°Ð¶ÐµÐ½Ð¸Ñ';
-$MESS['KOMTETDELIVERY_OPTIONS_DEFAULT_COURIER'] = 'ÐšÑƒÑ€ÑŒÐµÑ€ Ð¿Ð¾ ÑƒÐ¼Ð¾Ð»Ñ‡Ð°Ð½Ð¸ÑŽ';
+$MESS['KOMTETDELIVERY_OPTIONS_SHOP_ID'] = 'Èäåíòèôèêàòîð ìàãàçèíà';
+$MESS['KOMTETDELIVERY_OPTIONS_SECRET_KEY'] = 'Ñåêðåòíûé êëþ÷';
+$MESS['KOMTETDELIVERY_OPTIONS_SHOULD_FORM'] = 'Ôîðìèðîâàòü çàÿâêó íà äîñòàâêó ïðè ñòàòóñå "Äîñòàâêà ðàçðåøåíà"';
+$MESS['KOMTETDELIVERY_OPTIONS_TAX_SYSTEM'] = 'Ñèñòåìà íàëîãîîáëàæåíèÿ';
+$MESS['KOMTETDELIVERY_OPTIONS_DEFAULT_COURIER'] = 'Êóðüåð ïî óìîë÷àíèþ';
 
-$MESS['KOMTETDELIVERY_OPTIONS_TS_COMMON'] = 'ÐžÐ¡Ð';
-$MESS['KOMTETDELIVERY_OPTIONS_TS_SIMPLIFIED_IN'] = 'Ð£Ð¡Ð Ð´Ð¾Ñ…Ð¾Ð´';
-$MESS['KOMTETDELIVERY_OPTIONS_TS_SIMPLIFIED_IN_OUT'] = 'Ð£Ð¡Ð Ð´Ð¾Ñ…Ð¾Ð´ - Ñ€Ð°ÑÑ…Ð¾Ð´';
-$MESS['KOMTETDELIVERY_OPTIONS_TS_UTOII'] = 'Ð•ÐÐ’Ð”';
-$MESS['KOMTETDELIVERY_OPTIONS_TS_UST'] = 'Ð•Ð¡Ð';
-$MESS['KOMTETDELIVERY_OPTIONS_TS_PATENT'] = 'ÐŸÐ°Ñ‚ÐµÐ½Ñ‚';
+$MESS['KOMTETDELIVERY_OPTIONS_TS_COMMON'] = 'ÎÑÍ';
+$MESS['KOMTETDELIVERY_OPTIONS_TS_SIMPLIFIED_IN'] = 'ÓÑÍ äîõîä';
+$MESS['KOMTETDELIVERY_OPTIONS_TS_SIMPLIFIED_IN_OUT'] = 'ÓÑÍ äîõîä - ðàñõîä';
+$MESS['KOMTETDELIVERY_OPTIONS_TS_UTOII'] = 'ÅÍÂÄ';
+$MESS['KOMTETDELIVERY_OPTIONS_TS_UST'] = 'ÅÑÍ';
+$MESS['KOMTETDELIVERY_OPTIONS_TS_PATENT'] = 'Ïàòåíò';
 
-$MESS['KOMTETDELIVERY_OPTIONS_ORDER_STATUS'] = 'ÐŸÐ¾ÑÐ»Ðµ Ð´Ð¾ÑÑ‚Ð°Ð²ÐºÐ¸ Ð²Ñ‹ÑÑ‚Ð°Ð²Ð»ÑÑ‚ÑŒ ÑÑ‚Ð°Ñ‚ÑƒÑ Ð—Ð°ÐºÐ°Ð·Ð°';
-$MESS['KOMTETDELIVERY_OPTIONS_DELIVERY_STATUS'] = 'ÐŸÐ¾ÑÐ»Ðµ Ð´Ð¾ÑÑ‚Ð°Ð²ÐºÐ¸ Ð²Ñ‹ÑÑ‚Ð°Ð²Ð»ÑÑ‚ÑŒ ÑÑ‚Ð°Ñ‚ÑƒÑ Ð”Ð¾ÑÑ‚Ð°Ð²ÐºÐ¸';
-$MESS['KOMTETDELIVERY_OPTIONS_DELIVERY_TYPE'] = 'Ð¡Ð»ÑƒÐ¶Ð±Ð° Ð´Ð¾ÑÑ‚Ð°Ð²ÐºÐ¸';
-$MESS['KOMTETDELIVERY_OPTIONS_DEFAULT_NAME'] = 'ÐÐµ Ð²Ñ‹Ð±Ñ€Ð°Ð½Ð¾';
+$MESS['KOMTETDELIVERY_OPTIONS_ORDER_STATUS'] = 'Ïîñëå äîñòàâêè âûñòàâëÿòü ñòàòóñ Çàêàçà';
+$MESS['KOMTETDELIVERY_OPTIONS_DELIVERY_STATUS'] = 'Ïîñëå äîñòàâêè âûñòàâëÿòü ñòàòóñ Äîñòàâêè';
+$MESS['KOMTETDELIVERY_OPTIONS_DELIVERY_TYPE'] = 'Ñëóæáà äîñòàâêè';
+$MESS['KOMTETDELIVERY_OPTIONS_DEFAULT_NAME'] = 'Íå âûáðàíî';

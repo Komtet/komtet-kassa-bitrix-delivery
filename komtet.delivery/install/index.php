@@ -191,7 +191,7 @@ class komtet_delivery extends CModule
             $arFields = array(
                 "ADDRESS" => array(
                     "PERSON_TYPE_ID" => $personType["ID"],
-                    "NAME" => "ÐÐ´Ñ€ÐµÑ Ð´Ð¾ÑÑ‚Ð°Ð²ÐºÐ¸",
+                    "NAME" => "Àäðåñ äîñòàâêè",
                     "TYPE" => "TEXT",
                     "REQUIED" => "Y",
                     "SORT" => "100",
@@ -200,7 +200,7 @@ class komtet_delivery extends CModule
                 ),
                 "DATE" => array(
                     "PERSON_TYPE_ID" => $personType["ID"],
-                    "NAME" => "Ð”Ð°Ñ‚Ð° Ð´Ð¾ÑÑ‚Ð°Ð²ÐºÐ¸",
+                    "NAME" => "Äàòà äîñòàâêè",
                     "TYPE" => "DATE",
                     "REQUIED" => "Y",
                     "SORT" => "100",
@@ -209,7 +209,7 @@ class komtet_delivery extends CModule
                 ),
                 "TIME_START" => array(
                     "PERSON_TYPE_ID" => $personType["ID"],
-                    "NAME" => "Ð’Ñ€ÐµÐ¼Ñ Ð´Ð¾ÑÑ‚Ð°Ð²ÐºÐ¸ Ð¾Ñ‚",
+                    "NAME" => "Âðåìÿ äîñòàâêè îò",
                     "TYPE" => "TEXT",
                     "REQUIED" => "Y",
                     "SORT" => "100",
@@ -224,7 +224,7 @@ class komtet_delivery extends CModule
                 ),
                 "TIME_FINISH" => array(
                     "PERSON_TYPE_ID" => $personType["ID"],
-                    "NAME" => "Ð’Ñ€ÐµÐ¼Ñ Ð´Ð¾ÑÑ‚Ð°Ð²ÐºÐ¸ Ð´Ð¾",
+                    "NAME" => "Âðåìÿ äîñòàâêè äî",
                     "TYPE" => "TEXT",
                     "REQUIED" => "Y",
                     "SORT" => "100",
