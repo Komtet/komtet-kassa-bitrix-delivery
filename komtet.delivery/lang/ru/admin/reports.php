@@ -1,9 +1,9 @@
 <?php
 
-$MESS['KOMTETDELIVERY_REPORTS_TITLE'] = 'ÐžÑ‚Ñ‡Ñ‘Ñ‚Ñ‹';
-$MESS['KOMTETDELIVERY_REPORTS_MODULE_INCLUDE_ERROR'] = 'ÐÐµ ÑƒÐ´Ð°Ð»Ð¾ÑÑŒ Ð¿Ð¾Ð»ÐºÐ»ÑŽÑ‡Ð¸Ñ‚ÑŒ Ð¼Ð¾Ð´ÑƒÐ»ÑŒ "ÐšÐžÐœÐ¢Ð•Ð¢ ÐšÐ°ÑÑÐ°"';
-$MESS['KOMTETDELIVERY_REPORTS_ITEM_ID'] = 'Ð˜Ð”';
-$MESS['KOMTETDELIVERY_REPORTS_ITEM_ORDER_ID'] = 'Ð˜Ð” Ð—Ð°ÐºÐ°Ð·Ð°';
-$MESS['KOMTETDELIVERY_REPORTS_ITEM_KK_ID'] = 'Ð˜Ð” Ð—Ð°ÐºÐ°Ð·Ð° Ð² ÐšÐžÐœÐ¢Ð•Ð¢ ÐšÐ°ÑÑÐ°';
-$MESS['KOMTETDELIVERY_REPORTS_REQUEST'] = 'Ð—Ð°Ð¿Ñ€Ð¾Ñ';
-$MESS['KOMTETDELIVERY_REPORTS_RESPONSE'] = 'ÐžÑ‚Ð²ÐµÑ‚';
+$MESS['KOMTETDELIVERY_REPORTS_TITLE'] = 'Îò÷¸òû';
+$MESS['KOMTETDELIVERY_REPORTS_MODULE_INCLUDE_ERROR'] = 'Íå óäàëîñü ïîëêëþ÷èòü ìîäóëü "ÊÎÌÒÅÒ Êàññà"';
+$MESS['KOMTETDELIVERY_REPORTS_ITEM_ID'] = 'ÈÄ';
+$MESS['KOMTETDELIVERY_REPORTS_ITEM_ORDER_ID'] = 'ÈÄ Çàêàçà';
+$MESS['KOMTETDELIVERY_REPORTS_ITEM_KK_ID'] = 'ÈÄ Çàêàçà â ÊÎÌÒÅÒ Êàññà';
+$MESS['KOMTETDELIVERY_REPORTS_REQUEST'] = 'Çàïðîñ';
+$MESS['KOMTETDELIVERY_REPORTS_RESPONSE'] = 'Îòâåò';

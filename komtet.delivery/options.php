@@ -182,7 +182,7 @@ if (
     try {
         $kk_couriers = $courierManager->getCouriers()['couriers'];
     } catch (Exception $e) {
-        error_log(sprintf('РћС€РёР±РєР° РїРѕР»СѓС‡РµРЅРёСЏ СЃРїРёСЃРєР° РґРѕСЃС‚СѓРїРЅС‹С… РєСѓСЂСЊРµСЂРѕРІ. Exception: %s', $e));
+        error_log(sprintf('Ошибка получения списка доступных курьеров. Exception: %s', $e));
     }
 
 

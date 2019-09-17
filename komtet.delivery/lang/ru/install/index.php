@@ -1,13 +1,13 @@
 <?php
-$MESS['KOMTETDELIVERY_PARTNER_NAME'] = 'ÐšÐžÐœÐ¢Ð•Ð¢';
-$MESS['KOMTETDELIVERY_MODULE_NAME'] = 'ÐšÐžÐœÐ¢Ð•Ð¢ ÐšÐ°ÑÑÐ° Ð”Ð¾ÑÑ‚Ð°Ð²ÐºÐ°';
-$MESS['KOMTETDELIVERY_MODULE_DESCRIPTION'] = 'Ð˜Ð½Ñ‚ÐµÐ³Ñ€Ð°Ñ†Ð¸Ñ Ñ ÑÐµÑ€Ð²Ð¸ÑÐ¾Ð¼ Ð´Ð¾ÑÑ‚Ð°Ð²ÐºÐ¸ ÐšÐžÐœÐ¢Ð•Ð¢ ÐšÐ°ÑÑÐ°';
+$MESS['KOMTETDELIVERY_PARTNER_NAME'] = 'ÊÎÌÒÅÒ';
+$MESS['KOMTETDELIVERY_MODULE_NAME'] = 'ÊÎÌÒÅÒ Êàññà Äîñòàâêà';
+$MESS['KOMTETDELIVERY_MODULE_DESCRIPTION'] = 'Èíòåãðàöèÿ ñ ñåðâèñîì äîñòàâêè ÊÎÌÒÅÒ Êàññà';
 
-$MESS['INSTALL_KOMTETDELIVERY'] = 'ÐœÐ¾Ð´ÑƒÐ»ÑŒ ÐšÐžÐœÐ¢Ð•Ð¢ ÐšÐ°ÑÑÐ° Ð”Ð¾ÑÑ‚Ð°Ð²ÐºÐ° ÑƒÑÑ‚Ð°Ð½Ð¾Ð²Ð»ÐµÐ½';
-$MESS['UNINSTALL_KOMTETDELIVERY'] = 'ÐœÐ¾Ð´ÑƒÐ»ÑŒ ÐšÐžÐœÐ¢Ð•Ð¢ ÐšÐ°ÑÑÐ° Ð”Ð¾ÑÑ‚Ð°Ð²ÐºÐ° ÑƒÐ´Ð°Ð»ÐµÐ½';
+$MESS['INSTALL_KOMTETDELIVERY'] = 'Ìîäóëü ÊÎÌÒÅÒ Êàññà Äîñòàâêà óñòàíîâëåí';
+$MESS['UNINSTALL_KOMTETDELIVERY'] = 'Ìîäóëü ÊÎÌÒÅÒ Êàññà Äîñòàâêà óäàëåí';
 
-$MESS['MOD_ERR_SALE_NOT_FOUND'] = 'ÐœÐ¾Ð´ÑƒÐ»ÑŒ Sale Ð½Ðµ Ð½Ð°Ð¹Ð´ÐµÐ½';
-$MESS['MOD_ERR_PERSON_NOT_FOUND'] = 'Ð¢Ð¸Ð¿Ñ‹ Ð¿Ð»Ð°Ñ‚ÐµÐ»ÑŒÑ‰Ð¸ÐºÐ¾Ð² Ð½Ðµ Ð½Ð°Ð¹Ð´ÐµÐ½Ñ‹';
-$MESS['MOD_GROUP_NAME'] = 'ÐšÐžÐœÐ¢Ð•Ð¢ ÐšÐ°ÑÑÐ° Ð”Ð¾ÑÑ‚Ð°Ð²ÐºÐ°';
-$MESS['MOD_ERR_DELIVERY_IS_INSTALLED'] = 'ÐšÐžÐœÐ¢Ð•Ð¢ ÐšÐ°ÑÑÐ° Ð”Ð¾ÑÑ‚Ð°Ð²ÐºÐ° ÑƒÐ¶Ðµ ÑƒÑÑ‚Ð°Ð½Ð¾Ð²Ð»ÐµÐ½';
-$MESS['MOD_ERR_SALE_UPDATE'] = 'Ð’ÐµÑ€ÑÐ¸Ñ Ð¼Ð¾Ð´ÑƒÐ»Ñ Sale Ð½Ðµ ÑÐ¾Ð²Ð¼ÐµÑÑ‚Ð¸Ð¼Ð° Ñ Ð¼Ð¾Ð´ÑƒÐ»ÐµÐ¼ ÐšÐžÐœÐ¢Ð•Ð¢ ÐšÐ°ÑÑÐ° Ð”Ð¾ÑÑ‚Ð°Ð²ÐºÐ°, Ð¾Ð±Ð½Ð¾Ð²Ð¸Ñ‚Ðµ Ð¼Ð¾Ð´ÑƒÐ»ÑŒ';
+$MESS['MOD_ERR_SALE_NOT_FOUND'] = 'Ìîäóëü Sale íå íàéäåí';
+$MESS['MOD_ERR_PERSON_NOT_FOUND'] = 'Òèïû ïëàòåëüùèêîâ íå íàéäåíû';
+$MESS['MOD_GROUP_NAME'] = 'ÊÎÌÒÅÒ Êàññà Äîñòàâêà';
+$MESS['MOD_ERR_DELIVERY_IS_INSTALLED'] = 'ÊÎÌÒÅÒ Êàññà Äîñòàâêà óæå óñòàíîâëåí';
+$MESS['MOD_ERR_SALE_UPDATE'] = 'Âåðñèÿ ìîäóëÿ Sale íå ñîâìåñòèìà ñ ìîäóëåì ÊÎÌÒÅÒ Êàññà Äîñòàâêà, îáíîâèòå ìîäóëü';

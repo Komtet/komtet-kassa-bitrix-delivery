@@ -11,7 +11,7 @@ use Komtet\KassaSdk\Payment;
 use Komtet\KassaSdk\TaxSystem;
 use Komtet\KassaSdk\Vat;
 
-const MEASURE_NAME = 'С€С‚';
+const MEASURE_NAME = 'шт';
 const PAYSTATUS = 'Y';
 
 class KomtetDelivery
@@ -42,7 +42,7 @@ class KomtetDeliveryD7
         $options = $this->getOptions();
 
         if (!$this->optionsValidate($options)) {
-            error_log("РћС€РёР±РєР° РІР°Р»РёРґР°С†РёРё РЅР°СЃС‚СЂРѕРµРє");
+            error_log("Ошибка валидации настроек");
             return false;
         }
 
@@ -53,7 +53,7 @@ class KomtetDeliveryD7
         $this->taxSystem = $options['tax_system'];
         $this->defaultCourier = $options['default_courier'];
 
-        $this->modGroupName = "РљРћРњРўР•Рў РљР°СЃСЃР° Р”РѕСЃС‚Р°РІРєР°";
+        $this->modGroupName = "КОМТЕТ Касса Доставка";
         $this->orderStatus = $options['order_status'];
         $this->deliveryStatus = $options['delivery_status'];
         $this->deliveryType = $options['delivery_type'];
@@ -91,7 +91,7 @@ class KomtetDeliveryD7
         }
 
         if (!$this->shouldForm) {
-            error_log(sprintf('[Order - %s] Р—Р°РєР°Р· РЅРµ СЃРѕР·РґР°РЅ, С„Р»Р°Рі РіРµРЅРµСЂР°С†РёРё РЅРµ СѓСЃС‚Р°РЅРѕРІР»РµРЅ', $orderId));
+            error_log(sprintf('[Order - %s] Заказ не создан, флаг генерации не установлен', $orderId));
             return false;
         }
 
@@ -202,7 +202,7 @@ class KomtetDeliveryD7
                 $response = $this->manager->updateOrder($kkd_order['kk_id'], $orderDelivery);
             }
         } catch (SdkException $e) {
-            error_log(sprintf('РћС€РёР±РєР° СЃРѕР·РґР°РЅРёСЏ Р·Р°РєР°Р·Р°: %s', $e->getMessage()));
+            error_log(sprintf('Ошибка создания заказа: %s', $e->getMessage()));
         } finally {
             KomtetDeliveryReportsTable::Update(
                 $kOrderID,
@@ -252,17 +252,17 @@ class KomtetDeliveryD7
     private function validation($orderId, $customFieldList, $rsUser, $shipmentCollection)
     {
         if (!$this->customFieldsValidate($customFieldList)) {
-            error_log(sprintf('[Order - %s] РћС€РёР±РєР° Р·Р°РїРѕР»РµРЅРЅРёСЏ РґРѕРїРѕР»РЅРёС‚РµР»СЊРЅС‹С… РїРѕР»РµР№', $orderId));
+            error_log(sprintf('[Order - %s] Ошибка заполенния дополнительных полей', $orderId));
             return false;
         }
 
         if (!$this->userValidate($rsUser)) {
-            error_log(sprintf('[Order - %s] РћС€РёР±РєР° РІР°Р»РёРґР°С†РёРё РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ', $orderId));
+            error_log(sprintf('[Order - %s] Ошибка валидации пользователя', $orderId));
             return false;
         }
 
         if (!$this->shipmentValidate($shipmentCollection)) {
-            error_log(sprintf('[Order - %s] РћС€РёР±РєР° РІС‹Р±РѕСЂР° СЃРїРѕСЃРѕР±Р° РґРѕСЃС‚Р°РІРєРё', $orderId));
+            error_log(sprintf('[Order - %s] Ошибка выбора способа доставки', $orderId));
             return false;
         }
 
@@ -273,7 +273,7 @@ class KomtetDeliveryD7
     {
         foreach (array('kkd_address', 'kkd_date', 'kkd_time_start', 'kkd_time_end') as $key) {
             if (empty($customFieldList[$key])) {
-                error_log(sprintf('Р”РѕРїРѕР»РЅРёС‚РµР»СЊРЅРѕРµ РїРѕР»Рµ "%s" РґР»СЏ РјРѕРґСѓР»СЏ "komtet.delivery" РЅРµ СѓСЃС‚Р°РЅРѕРІР»РµРЅРѕ', $key));
+                error_log(sprintf('Дополнительное поле "%s" для модуля "komtet.delivery" не установлено', $key));
                 return false;
             }
         }
@@ -284,7 +284,7 @@ class KomtetDeliveryD7
     {
         foreach (array('key', 'secret', 'tax_system') as $key) {
             if (empty($options[$key])) {
-                error_log(sprintf('РќР°СЃС‚СЂРѕР№РєР° "%s" РґР»СЏ РјРѕРґСѓР»СЏ "komtet.delivery" РЅРµ РЅР°Р№РґРµРЅР°', $key));
+                error_log(sprintf('Настройка "%s" для модуля "komtet.delivery" не найдена', $key));
                 return false;
             }
             return true;
@@ -294,7 +294,7 @@ class KomtetDeliveryD7
     private function userValidate($user)
     {
         if (empty($user['PERSONAL_PHONE'])) {
-            error_log(sprintf('РЈ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ "%s" РЅРµ СѓРєР°Р·Р°РЅ РЅРѕРјРµСЂ С‚РµР»РµС„РѕРЅР°', $user['ID']));
+            error_log(sprintf('У пользователя "%s" не указан номер телефона', $user['ID']));
             return false;
         }
         return true;
@@ -307,7 +307,7 @@ class KomtetDeliveryD7
                 return true;
             }
         }
-        error_log(sprintf('Р’С‹Р±СЂР°РЅРЅС‹Р№ С‚РёРї РґРѕСЃС‚Р°РІРєРё РЅРµ СѓСЃС‚Р°РЅРѕРІР»РµРЅ РІ РЅР°СЃС‚СЂРѕР№РєР°С…'));
+        error_log(sprintf('Выбранный тип доставки не установлен в настройках'));
         return false;
     }
 }
