@@ -199,7 +199,7 @@ class komtet_delivery extends CModule
             ));
 
             $arFields = array(
-                "FUL_NAME" => array(
+                "FULL_NAME" => array(
                     "PERSON_TYPE_ID" => $personType["ID"],
                     "NAME" => "ÔÈÎ",
                     "TYPE" => "TEXT",

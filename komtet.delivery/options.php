@@ -52,6 +52,7 @@ $queryData =  http_build_query(array(
 ));
 
 $form->BeginEpilogContent();
+echo bitrix_sessid_post();
 $form->EndEpilogContent();
 
 $form->Begin(array('FORM_ACTION' => '/bitrix/admin/settings.php?' . $queryData));
