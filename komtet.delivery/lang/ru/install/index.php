@@ -6,6 +6,8 @@ $MESS['KOMTETDELIVERY_MODULE_DESCRIPTION'] = 'Интеграция с сервисом доставки КОМ
 $MESS['INSTALL_KOMTETDELIVERY'] = 'Модуль КОМТЕТ Касса Доставка установлен';
 $MESS['UNINSTALL_KOMTETDELIVERY'] = 'Модуль КОМТЕТ Касса Доставка удален';
 
+$MESS['MOD_INST_ERR'] = 'Произошла ошибка установки плагина';
+$MESS['MOD_ERR_CURL_NOT_FOUND'] = 'Для установки требуется CURL';
 $MESS['MOD_ERR_SALE_NOT_FOUND'] = 'Модуль Sale не найден';
 $MESS['MOD_ERR_PERSON_NOT_FOUND'] = 'Типы плательщиков не найдены';
 $MESS['MOD_GROUP_NAME'] = 'КОМТЕТ Касса Доставка';

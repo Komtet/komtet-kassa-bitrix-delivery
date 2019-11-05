@@ -107,12 +107,9 @@ class KomtetDeliveryD7
             }
         }
 
-        $userId = $order->getUserId();
-        $rsUser = UserTable::getById($userId)->fetch();
-
         $shipmentCollection = $order->getShipmentCollection();
 
-        if (!$this->validation($orderId, $customFieldList, $rsUser, $shipmentCollection)) {
+        if (!$this->validation($orderId, $customFieldList, $shipmentCollection)) {
             KomtetDeliveryReportsTable::update(
                 $kOrderID,
                 array("request" => 'validation error')
@@ -130,14 +127,9 @@ class KomtetDeliveryD7
         );
         $orderDelivery->setClient(
             $customFieldList['kkd_address'],
-            $rsUser['PERSONAL_PHONE'],
-            $rsUser['EMAIL'],
-            sprintf(
-                "%s %s %s",
-                $rsUser['NAME'],
-                $rsUser['SECOND_NAME'],
-                $rsUser['LAST_NAME']
-            )
+            $customFieldList['kkd_phone'],
+            null,
+            $customFieldList['kkd_full_name']
         );
 
         $positions = $order->getBasket();
@@ -249,15 +241,10 @@ class KomtetDeliveryD7
         CSaleOrder::StatusOrder($orderId, $this->orderStatus);
     }
 
-    private function validation($orderId, $customFieldList, $rsUser, $shipmentCollection)
+    private function validation($orderId, $customFieldList, $shipmentCollection)
     {
         if (!$this->customFieldsValidate($customFieldList)) {
             error_log(sprintf('[Order - %s] Ошибка заполенния дополнительных полей', $orderId));
-            return false;
-        }
-
-        if (!$this->userValidate($rsUser)) {
-            error_log(sprintf('[Order - %s] Ошибка валидации пользователя', $orderId));
             return false;
         }
 
@@ -271,7 +258,7 @@ class KomtetDeliveryD7
 
     private function customFieldsValidate($customFieldList)
     {
-        foreach (array('kkd_address', 'kkd_date', 'kkd_time_start', 'kkd_time_end') as $key) {
+        foreach (array('kkd_full_name', 'kkd_phone', 'kkd_address', 'kkd_date', 'kkd_time_start', 'kkd_time_end') as $key) {
             if (empty($customFieldList[$key])) {
                 error_log(sprintf('Дополнительное поле "%s" для модуля "komtet.delivery" не установлено', $key));
                 return false;
@@ -289,15 +276,6 @@ class KomtetDeliveryD7
             }
             return true;
         }
-    }
-
-    private function userValidate($user)
-    {
-        if (empty($user['PERSONAL_PHONE'])) {
-            error_log(sprintf('У пользователя "%s" не указан номер телефона', $user['ID']));
-            return false;
-        }
-        return true;
     }
 
     private function shipmentValidate($shipmentCollection)

@@ -52,7 +52,6 @@ $queryData =  http_build_query(array(
 ));
 
 $form->BeginEpilogContent();
-echo bitrix_sessid_post();
 $form->EndEpilogContent();
 
 $form->Begin(array('FORM_ACTION' => '/bitrix/admin/settings.php?' . $queryData));
@@ -185,12 +184,14 @@ if (
         error_log(sprintf('Ошибка получения списка доступных курьеров. Exception: %s', $e));
     }
 
-
+    
     if ($kk_couriers) {
         $couriersList[0] = GetMessage('KOMTETDELIVERY_OPTIONS_DEFAULT_NAME');
 
+        $encoding = (LANG_CHARSET === 'windows-1251') ? 'CP1251' : 'UTF-8';
         foreach ($kk_couriers as $kk_courier) {
-            $couriersList[$kk_courier['id']] = $kk_courier['name'];
+            $couriersList[$kk_courier['id']] = iconv('UTF-8', $encoding, $kk_courier['name']);
+            
         }
 
         $form->AddDropDownField(

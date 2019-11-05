@@ -43,6 +43,16 @@ class komtet_delivery extends CModule
     public function DoInstall()
     {
         global $APPLICATION;
+        
+        if (!extension_loaded('curl')) {
+            echo (CAdminMessage::ShowMessage(array(
+                "TYPE" => "ERROR",
+                "MESSAGE" => GetMessage("MOD_INST_ERR"),
+                "DETAILS" => GetMessage("MOD_ERR_CURL_NOT_FOUND"),
+                "HTML" => true
+            )));
+            return false;
+        }
 
         if (!IsModuleInstalled("sale")) {
             echo (CAdminMessage::ShowMessage(array(
@@ -189,6 +199,27 @@ class komtet_delivery extends CModule
             ));
 
             $arFields = array(
+                "FUL_NAME" => array(
+                    "PERSON_TYPE_ID" => $personType["ID"],
+                    "NAME" => "ФИО",
+                    "TYPE" => "TEXT",
+                    "REQUIED" => "Y",
+                    "SORT" => "100",
+                    "PROPS_GROUP_ID" => $groupID,
+                    "CODE" => "kkd_full_name"
+                ),
+                "PHONE" => array(
+                    "PERSON_TYPE_ID" => $personType["ID"],
+                    "NAME" => "Телефон",
+                    "TYPE" => "TEXT",
+                    "REQUIED" => "Y",
+                    "SORT" => "100",
+                    "PROPS_GROUP_ID" => $groupID,
+                    "CODE" => "kkd_phone",
+                    "SETTINGS" => array(
+                        "PATTERN" => "^$|\+?\d{6,}$"
+                    )
+                ),
                 "ADDRESS" => array(
                     "PERSON_TYPE_ID" => $personType["ID"],
                     "NAME" => "Адрес доставки",
