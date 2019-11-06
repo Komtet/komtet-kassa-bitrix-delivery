@@ -191,7 +191,7 @@ if (
 
         $encoding = (LANG_CHARSET === 'windows-1251') ? 'CP1251' : 'UTF-8';
         foreach ($kk_couriers as $kk_courier) {
-            $couriersList[$kk_courier['id']] = iconv('UTF-8', $encoding, $kk_courier['name']);
+            $couriersList[$kk_courier['id']] = mb_convert_encoding($kk_courier['name'], LANG_CHARSET, 'UTF-8');
             
         }
 

@@ -103,7 +103,7 @@ class KomtetDeliveryD7
         $customFields = CSaleOrderPropsValue::GetOrderProps($orderId);
         while ($customField = $customFields->Fetch()) {
             if ($customField['GROUP_NAME'] === $this->modGroupName) {
-                $customFieldList[$customField["CODE"]] = $customField["VALUE"];
+                $customFieldList[$customField["CODE"]] = mb_convert_encoding($customField["VALUE"], 'UTF-8', LANG_CHARSET);
             }
         }
 
@@ -141,12 +141,12 @@ class KomtetDeliveryD7
 
             $orderDelivery->addPosition(new OrderPosition([
                 'oid' => $position->getField('ID'),
-                'name' => $position->getField('NAME'),
+                'name' => mb_convert_encoding($position->getField('NAME'), 'UTF-8', LANG_CHARSET),
                 'price' => round($position->getPrice(), 2),
                 'quantity' => $position->getQuantity(),
                 'total' => round($position->getFinalPrice(), 2),
                 'vat' => $itemVatRate,
-                'measure_name' => $position->getField('MEASURE_NAME'),
+                'measure_name' => mb_convert_encoding($position->getField('MEASURE_NAME'), 'UTF-8', LANG_CHARSET),
             ]));
         }
 
@@ -165,7 +165,7 @@ class KomtetDeliveryD7
                     'quantity' => 1,
                     'total' => round($shipment->getPrice(), 2),
                     'vat' => $shipmentVatRate,
-                    'measure_name' => MEASURE_NAME,
+                    'measure_name' => mb_convert_encoding(MEASURE_NAME, 'UTF-8', LANG_CHARSET)
                 ]));
             }
         }
@@ -174,12 +174,12 @@ class KomtetDeliveryD7
             $orderDelivery->setCourierId($this->defaultCourier);
         }
         if ($order->getField('USER_DESCRIPTION')) {
-            $orderDelivery->setDescription($order->getField('USER_DESCRIPTION'));
+            $orderDelivery->setDescription(mb_convert_encoding($order->getField('USER_DESCRIPTION'), 'UTF-8', LANG_CHARSET));
         }
 
         $scheme = array_key_exists('HTTPS', $_SERVER) && strtolower($_SERVER['HTTPS']) !== 'off' ? 'https' : 'http';
         $url = sprintf('%s://%s/%s/%s/', $scheme, $_SERVER['SERVER_NAME'], "done_order", $orderId);
-        $orderDelivery->setCallbackUrl($url);
+        $orderDelivery->setCallbackUrl(mb_convert_encoding($url, 'UTF-8', LANG_CHARSET));
 
         $normalDate = implode("-", array_reverse(explode(".", $customFieldList["kkd_date"])));
         $startDate = sprintf("%s %s", $normalDate, $customFieldList["kkd_time_start"]);
@@ -193,6 +193,7 @@ class KomtetDeliveryD7
             } else {
                 $response = $this->manager->updateOrder($kkd_order['kk_id'], $orderDelivery);
             }
+            
         } catch (SdkException $e) {
             error_log(sprintf('Ошибка создания заказа: %s', $e->getMessage()));
         } finally {
