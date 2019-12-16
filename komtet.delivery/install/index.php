@@ -201,18 +201,16 @@ class komtet_delivery extends CModule
             $arFields = array(
                 "FULL_NAME" => array(
                     "PERSON_TYPE_ID" => $personType["ID"],
-                    "NAME" => "ФИО",
+                    "NAME" => GetMessage('PROPERTY_FULL_NAME'),
                     "TYPE" => "TEXT",
-                    "REQUIED" => "Y",
                     "SORT" => "100",
                     "PROPS_GROUP_ID" => $groupID,
                     "CODE" => "kkd_full_name"
                 ),
                 "PHONE" => array(
                     "PERSON_TYPE_ID" => $personType["ID"],
-                    "NAME" => "Телефон",
+                    "NAME" => GetMessage('PROPERTY_PHONE'),
                     "TYPE" => "TEXT",
-                    "REQUIED" => "Y",
                     "SORT" => "100",
                     "PROPS_GROUP_ID" => $groupID,
                     "CODE" => "kkd_phone",
@@ -222,27 +220,24 @@ class komtet_delivery extends CModule
                 ),
                 "ADDRESS" => array(
                     "PERSON_TYPE_ID" => $personType["ID"],
-                    "NAME" => "Адрес доставки",
+                    "NAME" => GetMessage('PROPERTY_ADDRESS'),
                     "TYPE" => "TEXT",
-                    "REQUIED" => "Y",
                     "SORT" => "100",
                     "PROPS_GROUP_ID" => $groupID,
                     "CODE" => "kkd_address"
                 ),
                 "DATE" => array(
                     "PERSON_TYPE_ID" => $personType["ID"],
-                    "NAME" => "Дата доставки",
+                    "NAME" => GetMessage('PROPERTY_DATE'),
                     "TYPE" => "DATE",
-                    "REQUIED" => "Y",
                     "SORT" => "100",
                     "PROPS_GROUP_ID" => $groupID,
                     "CODE" => "kkd_date"
                 ),
                 "TIME_START" => array(
                     "PERSON_TYPE_ID" => $personType["ID"],
-                    "NAME" => "Время доставки от",
+                    "NAME" => GetMessage('PROPERTY_BEGIN_TIME'),
                     "TYPE" => "TEXT",
-                    "REQUIED" => "Y",
                     "SORT" => "100",
                     "PROPS_GROUP_ID" => $groupID,
                     "CODE" => "kkd_time_start",
@@ -255,9 +250,8 @@ class komtet_delivery extends CModule
                 ),
                 "TIME_FINISH" => array(
                     "PERSON_TYPE_ID" => $personType["ID"],
-                    "NAME" => "Время доставки до",
+                    "NAME" => GetMessage('PROPERTY_END_TIME'),
                     "TYPE" => "TEXT",
-                    "REQUIED" => "Y",
                     "SORT" => "100",
                     "PROPS_GROUP_ID" => $groupID,
                     "CODE" => "kkd_time_end",
