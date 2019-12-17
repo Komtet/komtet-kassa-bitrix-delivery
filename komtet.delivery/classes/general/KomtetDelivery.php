@@ -89,7 +89,7 @@ class KomtetDeliveryD7
         } else {
             $kOrderID = $kOrderID['id'];
         }
-
+            
         if (!$this->shouldForm) {
             error_log(sprintf('[Order - %s] Заказ не создан, флаг генерации не установлен', $orderId));
             return false;
@@ -109,11 +109,7 @@ class KomtetDeliveryD7
 
         $shipmentCollection = $order->getShipmentCollection();
 
-        if (!$this->validation($orderId, $customFieldList, $shipmentCollection)) {
-            KomtetDeliveryReportsTable::update(
-                $kOrderID,
-                array("request" => 'validation error')
-            );
+        if (!$this->validation($kOrderID, $customFieldList, $shipmentCollection)) {
             return false;
         }
 
@@ -242,26 +238,25 @@ class KomtetDeliveryD7
         CSaleOrder::StatusOrder($orderId, $this->orderStatus);
     }
 
-    private function validation($orderId, $customFieldList, $shipmentCollection)
+    private function validation($kOrderID, $customFieldList, $shipmentCollection)
     {
-        if (!$this->customFieldsValidate($customFieldList)) {
-            error_log(sprintf('[Order - %s] Ошибка заполенния дополнительных полей', $orderId));
+        if (!$this->customFieldsValidate($customFieldList, $kOrderID)) {
             return false;
         }
 
-        if (!$this->shipmentValidate($shipmentCollection)) {
-            error_log(sprintf('[Order - %s] Ошибка выбора способа доставки', $orderId));
+        if (!$this->shipmentValidate($shipmentCollection, $kOrderID)) {
             return false;
         }
 
         return true;
     }
 
-    private function customFieldsValidate($customFieldList)
+    private function customFieldsValidate($customFieldList, $kOrderID)
     {
         foreach (array('kkd_full_name', 'kkd_phone', 'kkd_address', 'kkd_date', 'kkd_time_start', 'kkd_time_end') as $key) {
             if (empty($customFieldList[$key])) {
                 error_log(sprintf('Дополнительное поле "%s" для модуля "komtet.delivery" не установлено', $key));
+                Logger::print_log($kOrderID, array("request" => sprintf('Ошибка заполнения поля "%s"', $key)));
                 return false;
             }
         }
@@ -279,7 +274,7 @@ class KomtetDeliveryD7
         }
     }
 
-    private function shipmentValidate($shipmentCollection)
+    private function shipmentValidate($shipmentCollection, $kOrderID)
     {
         foreach ($shipmentCollection as $shipment) {
             if ($shipment->getDeliveryId() === $this->deliveryType) {
@@ -287,6 +282,14 @@ class KomtetDeliveryD7
             }
         }
         error_log(sprintf('Выбранный тип доставки не установлен в настройках'));
+        Logger::print_log($kOrderID, array("request" => sprintf('Выбранный тип доставки не установлен в настройках')));
         return false;
+    }
+}
+
+class Logger
+{
+    public static function print_log($kOrderID, $message){
+        KomtetDeliveryReportsTable::update($kOrderID, $message);
     }
 }

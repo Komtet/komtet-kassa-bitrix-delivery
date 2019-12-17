@@ -214,9 +214,6 @@ class komtet_delivery extends CModule
                     "SORT" => "100",
                     "PROPS_GROUP_ID" => $groupID,
                     "CODE" => "kkd_phone",
-                    "SETTINGS" => array(
-                        "PATTERN" => "^$|\+?\d{6,}$"
-                    )
                 ),
                 "ADDRESS" => array(
                     "PERSON_TYPE_ID" => $personType["ID"],
