@@ -3,6 +3,7 @@
 use Bitrix\Sale\Order as OrderTable;
 use Komtet\KassaSdk\Exception\SdkException;
 use Komtet\KassaSdk\Client;
+use Komtet\KassaSdk\CourierManager;
 use Komtet\KassaSdk\Order;
 use Komtet\KassaSdk\OrderManager;
 use Komtet\KassaSdk\OrderPosition;
@@ -22,16 +23,66 @@ class KomtetDelivery
         $ok->createOrder($orderId);
     }
 
-    public static function setCouriers($order)
-    {
-        $ok = new KomtetDeliveryD7();
-        $ok->setCouriers();
-    }
-
     public static function doneOrder($orderId)
     {
         $ok = new KomtetDeliveryD7();
         $ok->doneOrder($orderId);
+    }
+}
+
+class KomtetDeliveryCouriers
+{
+    public static function getCourierList()
+    {
+        $moduleID = 'komtet.delivery';
+        $shop_id = COption::GetOptionString($moduleID, 'shop_id');
+        $secret_key = COption::GetOptionString($moduleID, 'secret_key');
+
+        if ($shop_id && $secret_key && strlen($shop_id) >= 2 && strlen($secret_key) >= 2) {
+            $client = new Client($shop_id, $secret_key);
+
+            $courierManager = new CourierManager($client);
+            try {
+                return $courierManager->getCouriers()['couriers'];
+            } catch (Exception $e) {
+                error_log(sprintf('Ошибка получения списка доступных курьеров. Exception: %s', $e));
+            }
+        }
+    }
+
+    public static function updateList()
+    {
+        $courier_list = KomtetDeliveryCouriers::getCourierList();
+
+        //группы свойств
+        $groups = CSaleOrderPropsGroup::GetList(
+            array(),
+            array('NAME' => GetMessage('MOD_GROUP_NAME'))
+        );
+        // для каждой группы получаем свойство "Курьер"
+        while ($propsGroup = $groups->Fetch()) {
+            $fields = CSaleOrderProps::GetList(
+                array(),
+                array(
+                    'PROPS_GROUP_ID' => $propsGroup['ID'],
+                    'NAME' => GetMessage('PROPERTY_COURIER'),
+                )
+            );
+            // для каждого свойства устанавливаем курьеров
+            while ($field = $fields->Fetch()) {
+                CSaleOrderPropsVariant::DeleteAll($field['ID']);
+
+                foreach ($courier_list as $courier) {
+                    CSaleOrderPropsVariant::Add(
+                      array(
+                          'ORDER_PROPS_ID' => $field['ID'],
+                          'NAME' => mb_convert_encoding($courier['name'], LANG_CHARSET, 'UTF-8'),
+                          'VALUE' => $courier['id'],
+                      )
+                    );
+                }
+            }
+        }
     }
 }
 
@@ -81,12 +132,6 @@ class KomtetDeliveryD7
         );
 
         return $result;
-    }
-
-    public function setCouriers()
-    {
-        echo '21312313';
-        die();
     }
 
     public function createOrder($orderId)
