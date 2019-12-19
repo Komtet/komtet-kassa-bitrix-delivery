@@ -21,6 +21,8 @@ $form = new CAdminForm('tabControl', array(array(
     'TITLE' => GetMessage('MAIN_TAB_TITLE_SET'),
 )));
 
+$couriers_controller = new KomtetDeliveryCouriers();
+
 if ($REQUEST_METHOD == 'POST' && check_bitrix_sessid()) {
     $data = array(
         'shop_id' => 'string',
@@ -43,7 +45,7 @@ if ($REQUEST_METHOD == 'POST' && check_bitrix_sessid()) {
         }
     }
 
-    KomtetDeliveryCouriers::updateList();
+    $couriers_controller->updateList();
 }
 $queryData = http_build_query(array(
     'lang' => LANGUAGE_ID,
@@ -166,7 +168,7 @@ if (CModule::IncludeModule('sale')) {
     );
 }
 
-$kk_couriers = KomtetDeliveryCouriers::getCourierList();
+$kk_couriers = $couriers_controller->getCourierList();
 if ($kk_couriers) {
     $couriersList[0] = GetMessage('KOMTETDELIVERY_OPTIONS_DEFAULT_NAME');
 

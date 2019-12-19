@@ -32,11 +32,12 @@ class KomtetDelivery
 
 class KomtetDeliveryCouriers
 {
-    public static function getCourierList()
+    protected $moduleID = 'komtet.delivery';
+
+    public function getCourierList()
     {
-        $moduleID = 'komtet.delivery';
-        $shop_id = COption::GetOptionString($moduleID, 'shop_id');
-        $secret_key = COption::GetOptionString($moduleID, 'secret_key');
+        $shop_id = COption::GetOptionString($this->moduleID, 'shop_id');
+        $secret_key = COption::GetOptionString($this->moduleID, 'secret_key');
 
         if ($shop_id && $secret_key && strlen($shop_id) >= 2 && strlen($secret_key) >= 2) {
             $client = new Client($shop_id, $secret_key);
@@ -50,9 +51,11 @@ class KomtetDeliveryCouriers
         }
     }
 
-    public static function updateList()
+    public function updateList()
     {
-        $courier_list = KomtetDeliveryCouriers::getCourierList();
+        $courier_list = $this->getCourierList();
+
+        $default_courier = COption::GetOptionString($this->moduleID, 'default_courier');
 
         //группы свойств
         $groups = CSaleOrderPropsGroup::GetList(
@@ -70,15 +73,25 @@ class KomtetDeliveryCouriers
             );
             // для каждого свойства устанавливаем курьеров
             while ($field = $fields->Fetch()) {
+                // чистим поля и дефолтное значение
                 CSaleOrderPropsVariant::DeleteAll($field['ID']);
+                CSaleOrderProps::Update($field['ID'], array('DEFAULT_VALUE' => ''));
 
+                // добавляем курьеров в список
                 foreach ($courier_list as $courier) {
                     CSaleOrderPropsVariant::Add(
-                      array(
-                          'ORDER_PROPS_ID' => $field['ID'],
-                          'NAME' => mb_convert_encoding($courier['name'], LANG_CHARSET, 'UTF-8'),
-                          'VALUE' => $courier['id'],
-                      )
+                        array(
+                            'ORDER_PROPS_ID' => $field['ID'],
+                            'NAME' => mb_convert_encoding($courier['name'], LANG_CHARSET, 'UTF-8'),
+                            'VALUE' => $courier['id'],
+                        )
+                    );
+                }
+                // устанавливаем дефолтного курьера
+                if ($default_courier) {
+                    CSaleOrderProps::Update(
+                        $field['ID'],
+                        array('DEFAULT_VALUE' => $default_courier)
                     );
                 }
             }
