@@ -32,7 +32,7 @@ if ($REQUEST_METHOD == 'POST' && check_bitrix_sessid()) {
         'default_courier' => 'integer',
         'order_status' => 'string',
         'delivery_status' => 'string',
-        'delivery_type' => 'integer',
+        'delivery_types' => 'array',
     );
     foreach ($data as $key => $type) {
         $value = filter_input(INPUT_POST, strtoupper($key));
@@ -42,6 +42,9 @@ if ($REQUEST_METHOD == 'POST' && check_bitrix_sessid()) {
             COption::SetOptionInt($moduleId, $key, $value === null ? 0 : 1);
         } elseif ($type == 'integer') {
             COption::SetOptionInt($moduleId, $key, $value);
+        } elseif ($type == 'array') {
+            $value = filter_input(INPUT_POST, strtoupper($key), FILTER_DEFAULT, FILTER_FORCE_ARRAY);
+            COption::SetOptionString($moduleId, $key, json_encode($value));
         }
     }
 
@@ -105,6 +108,26 @@ $form->AddDropDownField(
     COption::GetOptionString($moduleId, 'tax_system')
 );
 
+function AddMultiSelectField($form, $id, $content, $arSelect, $value)
+{
+    $html = '<select name="'.$id.'" multiple>';
+    foreach ($arSelect as $key => $val) {
+        $html .= '<option value="'.htmlspecialcharsbx($key).'"'.(in_array($key, $value) ? ' selected' : '').'>'.htmlspecialcharsex($val).'</option>';
+    }
+    $html .= '</select>';
+
+    $form->tabs[$form->tabIndex]['FIELDS'][$id] = array(
+        'id' => $id,
+        'required' => true,
+        'content' => $content,
+        'html' => '<td class="adm-detail-content-cell-l">
+                    <span class="adm-required-field">'.$form->GetCustomLabelHTML($id, $content).'</span>
+                   </td>
+                   <td>'.$html.'</td>',
+        'hidden' => '<input type="hidden" name="'.$id.'" value="'.htmlspecialcharsbx($value).'">',
+    );
+}
+
 if (CModule::IncludeModule('sale')) {
     $orderStatuses = StatusLangTable::getList(
         array(
@@ -159,12 +182,12 @@ if (CModule::IncludeModule('sale')) {
         COption::GetOptionString($moduleId, 'delivery_status')
     );
 
-    $form->AddDropDownField(
-        'DELIVERY_TYPE',
-        GetMessage('KOMTETDELIVERY_OPTIONS_DELIVERY_TYPE'),
-        true,
+    AddMultiSelectField(
+        $form,
+        'DELIVERY_TYPES[]',
+        GetMessage('KOMTETDELIVERY_OPTIONS_DELIVERY_TYPES'),
         $deliveryTypeList,
-        COption::GetOptionString($moduleId, 'delivery_type')
+        json_decode(COption::GetOptionString($moduleId, 'delivery_types'))
     );
 }
 

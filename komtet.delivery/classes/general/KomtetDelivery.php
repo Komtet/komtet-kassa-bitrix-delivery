@@ -126,7 +126,7 @@ class KomtetDeliveryD7
         $this->modGroupName = 'ÊÎÌÒÅÒ Êàññà Äîñòàâêà';
         $this->orderStatus = $options['order_status'];
         $this->deliveryStatus = $options['delivery_status'];
-        $this->deliveryType = $options['delivery_type'];
+        $this->deliveryTypes = $options['delivery_types'];
         $this->payStatus = PAYSTATUS;
     }
 
@@ -141,7 +141,7 @@ class KomtetDeliveryD7
             'default_courier' => intval(COption::GetOptionInt($moduleID, 'default_courier')),
             'order_status' => COption::GetOptionString($moduleID, 'order_status'),
             'delivery_status' => COption::GetOptionString($moduleID, 'delivery_status'),
-            'delivery_type' => COption::GetOptionString($moduleID, 'delivery_type'),
+            'delivery_types' => json_decode(COption::GetOptionString($moduleID, 'delivery_types')),
         );
 
         return $result;
@@ -218,7 +218,7 @@ class KomtetDeliveryD7
         }
 
         foreach ($shipmentCollection as $shipment) {
-            if ($shipment->getPrice() > 0.0 and $shipment->getDeliveryId() === $this->deliveryType) {
+            if ($shipment->getPrice() > 0.0) {
                 $shipmentVatRate = Vat::RATE_NO;
                 if ($this->taxSystem === TaxSystem::COMMON and method_exists($shipment, 'getVatRate')) {
                     $shipmentVatRate = strval(floatval($shipment->getVatRate()) * 100);
@@ -350,7 +350,7 @@ class KomtetDeliveryD7
     private function shipmentValidate($shipmentCollection, $kOrderID)
     {
         foreach ($shipmentCollection as $shipment) {
-            if ($shipment->getDeliveryId() === $this->deliveryType) {
+            if (in_array($shipment->getDeliveryId(), $this->deliveryTypes)) {
                 return true;
             }
         }
