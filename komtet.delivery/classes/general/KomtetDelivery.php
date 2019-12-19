@@ -104,7 +104,6 @@ class KomtetDeliveryD7
     protected $manager;
     protected $shouldForm;
     protected $taxSystem;
-    protected $defaultCourier;
 
     public function __construct()
     {
@@ -121,7 +120,6 @@ class KomtetDeliveryD7
         $this->manager = new OrderManager($client);
         $this->shouldForm = $options['should_form'];
         $this->taxSystem = $options['tax_system'];
-        $this->defaultCourier = $options['default_courier'];
 
         $this->modGroupName = 'КОМТЕТ Касса Доставка';
         $this->orderStatus = $options['order_status'];
@@ -138,7 +136,6 @@ class KomtetDeliveryD7
             'secret' => COption::GetOptionString($moduleID, 'secret_key'),
             'should_form' => COption::GetOptionInt($moduleID, 'should_form') == 1,
             'tax_system' => intval(COption::GetOptionInt($moduleID, 'tax_system')),
-            'default_courier' => intval(COption::GetOptionInt($moduleID, 'default_courier')),
             'order_status' => COption::GetOptionString($moduleID, 'order_status'),
             'delivery_status' => COption::GetOptionString($moduleID, 'delivery_status'),
             'delivery_types' => json_decode(COption::GetOptionString($moduleID, 'delivery_types')),
@@ -149,6 +146,19 @@ class KomtetDeliveryD7
 
     public function createOrder($orderId)
     {
+        // проверяем, включен ли плагин
+        if (!$this->shouldForm) {
+            error_log(sprintf('[Order - %s] Заказ не создан, флаг генерации не установлен', $orderId));
+
+            return false;
+        }
+
+        // проверяем, статус отгрузки
+        $order = OrderTable::load($orderId);
+        if (!$order->isAllowDelivery()) {
+            return false;
+        }
+
         $kOrderID = KomtetDeliveryReportsTable::getRow(array(
             'select' => array('*'),
             'filter' => array('order_id' => $orderId),
@@ -158,17 +168,6 @@ class KomtetDeliveryD7
             $kOrderID = KomtetDeliveryReportsTable::add(['order_id' => $orderId])->getId();
         } else {
             $kOrderID = $kOrderID['id'];
-        }
-
-        if (!$this->shouldForm) {
-            error_log(sprintf('[Order - %s] Заказ не создан, флаг генерации не установлен', $orderId));
-
-            return false;
-        }
-
-        $order = OrderTable::load($orderId);
-        if (!$order->isAllowDelivery()) {
-            return false;
         }
 
         $customFields = CSaleOrderPropsValue::GetOrderProps($orderId);
@@ -236,8 +235,8 @@ class KomtetDeliveryD7
             }
         }
 
-        if (!$this->defaultCourier == 0) {
-            $orderDelivery->setCourierId($this->defaultCourier);
+        if ($customFieldList['kkd_courier']) {
+            $orderDelivery->setCourierId(intval($customFieldList['kkd_courier']));
         }
         if ($order->getField('USER_DESCRIPTION')) {
             $orderDelivery->setDescription(mb_convert_encoding($order->getField('USER_DESCRIPTION'), 'UTF-8', LANG_CHARSET));
