@@ -121,7 +121,7 @@ class KomtetDeliveryD7
         $this->shouldForm = $options['should_form'];
         $this->taxSystem = $options['tax_system'];
 
-        $this->modGroupName = 'КОМТЕТ Касса Доставка';
+        $this->modGroupName = mb_convert_encoding('КОМТЕТ Касса Доставка', LANG_CHARSET, 'WINDOWS-1251');
         $this->orderStatus = $options['order_status'];
         $this->deliveryStatus = $options['delivery_status'];
         $this->deliveryTypes = $options['delivery_types'];
@@ -259,6 +259,7 @@ class KomtetDeliveryD7
                 $response = $this->manager->updateOrder($kkd_order['kk_id'], $orderDelivery);
             }
         } catch (SdkException $e) {
+            $response = $e->getMessage();
             error_log(sprintf('Ошибка создания заказа: %s', $e->getMessage()));
         } finally {
             KomtetDeliveryReportsTable::Update(
@@ -364,6 +365,10 @@ class Logger
 {
     public static function print_log($kOrderID, $message)
     {
+        foreach ($message as $key => $value) {
+            $message[$key] = mb_convert_encoding($value, LANG_CHARSET, 'WINDOWS-1251');
+        }
+
         KomtetDeliveryReportsTable::update($kOrderID, $message);
     }
 }
