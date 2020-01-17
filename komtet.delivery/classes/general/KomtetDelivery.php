@@ -14,7 +14,7 @@ use Komtet\KassaSdk\Vat;
 const MEASURE_NAME = 'רע';
 const PAYSTATUS = 'Y';
 
-const SHOP_ID_LENGTH = 5;
+const SHOP_ID_LENGTH = 6;
 const SECRET_KEY_LENGTH = 10;
 
 class KomtetDelivery
