@@ -14,6 +14,9 @@ use Komtet\KassaSdk\Vat;
 const MEASURE_NAME = 'רע';
 const PAYSTATUS = 'Y';
 
+const SHOP_ID_LENGTH = 6;
+const SECRET_KEY_LENGTH = 10;
+
 class KomtetDelivery
 {
     public static function handleSalePayOrder($order)
@@ -39,7 +42,7 @@ class KomtetDeliveryCouriers
         $shop_id = COption::GetOptionString($this->moduleID, 'shop_id');
         $secret_key = COption::GetOptionString($this->moduleID, 'secret_key');
 
-        if ($shop_id && $secret_key && strlen($shop_id) >= 2 && strlen($secret_key) >= 2) {
+        if ($shop_id && $secret_key && strlen($shop_id) == SHOP_ID_LENGTH && strlen($secret_key) == SECRET_KEY_LENGTH) {
             $client = new Client($shop_id, $secret_key);
 
             $courierManager = new CourierManager($client);
