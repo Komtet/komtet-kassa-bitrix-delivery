@@ -215,6 +215,14 @@ class komtet_delivery extends CModule
                     "PROPS_GROUP_ID" => $groupID,
                     "CODE" => "kkd_phone",
                 ),
+                "EMAIL" => array(
+                    "PERSON_TYPE_ID" => $personType["ID"],
+                    "NAME" => GetMessage('PROPERTY_EMAIL'),
+                    "TYPE" => "TEXT",
+                    "SORT" => "100",
+                    "PROPS_GROUP_ID" => $groupID,
+                    "CODE" => "kkd_email",
+                ),
                 "ADDRESS" => array(
                     "PERSON_TYPE_ID" => $personType["ID"],
                     "NAME" => GetMessage('PROPERTY_ADDRESS'),

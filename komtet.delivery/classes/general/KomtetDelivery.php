@@ -122,10 +122,11 @@ class KomtetDeliveryD7
             0,
             Payment::TYPE_CARD
         );
+
         $orderDelivery->setClient(
             $customFieldList['kkd_address'],
             $customFieldList['kkd_phone'],
-            null,
+            array_key_exists('kkd_email', $customFieldList)? $customFieldList['kkd_email'] : null,
             $customFieldList['kkd_full_name']
         );
 

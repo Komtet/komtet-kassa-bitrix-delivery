@@ -16,6 +16,7 @@ $MESS['MOD_ERR_SALE_UPDATE'] = 'Версия модуля Sale не совместима с модулем КОМТЕ
 
 $MESS['PROPERTY_FULL_NAME'] = 'ФИО';
 $MESS['PROPERTY_PHONE'] = 'Телефон';
+$MESS['PROPERTY_EMAIL'] = 'Email';
 $MESS['PROPERTY_ADDRESS'] = 'Адрес доставки';
 $MESS['PROPERTY_DATE'] = 'Дата доставки';
 $MESS['PROPERTY_BEGIN_TIME'] = 'Время доставки от';
