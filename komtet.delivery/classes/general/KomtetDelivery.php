@@ -45,7 +45,7 @@ class KomtetDeliveryD7
 
             return false;
         }
-
+        
         $client = new Client($options['key'], $options['secret']);
 
         $this->manager = new OrderManager($client);
@@ -185,7 +185,7 @@ class KomtetDeliveryD7
 
         $kkd_order = KomtetDeliveryReportsTable::getByID($kOrderID)->Fetch();
         try {
-            if (is_null($kkd_order['kk_id'])) {
+            if (is_null($kkd_order['kk_id']) || $kkd_order['kk_id'] == 0 ) {
                 $response = $this->manager->createOrder($orderDelivery);
             } else {
                 $response = $this->manager->updateOrder($kkd_order['kk_id'], $orderDelivery);
@@ -199,7 +199,7 @@ class KomtetDeliveryD7
                 array(
                     'request' => json_encode($orderDelivery->asArray()),
                     'response' => json_encode($response),
-                    'kk_id' => !is_null($kkd_order['kk_id']) ? $kkd_order['kk_id'] : $response['id'],
+                    'kk_id' => (!is_null($kkd_order['kk_id']) && $kkd_order['kk_id'] != 0) ? $kkd_order['kk_id'] : $response['id'],
                 )
             );
         }
