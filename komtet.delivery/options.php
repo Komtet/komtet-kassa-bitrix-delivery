@@ -122,7 +122,6 @@ function AddMultiSelectField($form, $id, $content, $arSelect, $value)
                     <span class="adm-required-field">'.$form->GetCustomLabelHTML($id, $content).'</span>
                    </td>
                    <td>'.$html.'</td>',
-        'hidden' => '<input type="hidden" name="'.$id.'" value="'.htmlspecialcharsbx($value).'">',
     );
 }
 
@@ -160,6 +159,11 @@ if (CModule::IncludeModule('sale')) {
     }
 
     $deliveryTypeList[0] = GetMessage('KOMTETDELIVERY_OPTIONS_DEFAULT_NAME');
+    $list = json_decode(COption::GetOptionString($moduleId, 'delivery_types'));
+    if (is_null($list)) {
+        COption::SetOptionString($moduleId, 'delivery_types', json_encode(["0"]));
+    }
+
     while ($deliveryType = $deliveryTypes->Fetch()) {
         $deliveryTypeList[$deliveryType['ID']] = $deliveryType['NAME'];
     }
