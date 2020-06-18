@@ -41,7 +41,7 @@ class KomtetDeliveryD7
         $options = $this->getOptions();
 
         if (!$this->optionsValidate($options)) {
-            error_log('Îøèáêà âàëèäàöèè íàñòðîåê');
+            error_log('˜˜˜˜˜˜ ˜˜˜˜˜˜˜˜˜ ˜˜˜˜˜˜˜˜');
 
             return false;
         }
@@ -53,7 +53,7 @@ class KomtetDeliveryD7
         $this->taxSystem = $options['tax_system'];
         $this->defaultCourier = $options['default_courier'];
 
-        $this->modGroupName = mb_convert_encoding('ÊÎÌÒÅÒ Êàññà Äîñòàâêà', LANG_CHARSET, 'WINDOWS-1251');
+        $this->modGroupName = mb_convert_encoding('˜˜˜˜˜˜ ˜˜˜˜˜ ˜˜˜˜˜˜˜˜', LANG_CHARSET, 'WINDOWS-1251');
         $this->orderStatus = $options['order_status'];
         $this->deliveryStatus = $options['delivery_status'];
         $this->deliveryTypes = $options['delivery_types'];
@@ -77,6 +77,12 @@ class KomtetDeliveryD7
         return $result;
     }
 
+    protected function getPayment($payment)
+    {
+        $paySystem = $payment->getPaySystem();
+        return ($paySystem->isCash()) ? Payment::TYPE_CASH : Payment::TYPE_CARD;
+    }
+
     public function createOrder($orderId)
     {
         $kOrderID = KomtetDeliveryReportsTable::getRow(array(
@@ -91,7 +97,7 @@ class KomtetDeliveryD7
         }
 
         if (!$this->shouldForm) {
-            error_log(sprintf('[Order - %s] Çàêàç íå ñîçäàí, ôëàã ãåíåðàöèè íå óñòàíîâëåí', $orderId));
+            error_log(sprintf('[Order - %s] ˜˜˜˜˜ ˜˜ ˜˜˜˜˜˜, ˜˜˜˜ ˜˜˜˜˜˜˜˜˜ ˜˜ ˜˜˜˜˜˜˜˜˜˜', $orderId));
 
             return false;
         }
@@ -114,13 +120,14 @@ class KomtetDeliveryD7
             return false;
         }
 
+        $paymentCollection = $order->getPaymentCollection();
         $orderDelivery = new Order(
             $order->getId(),
             'new',
             $this->taxSystem,
             $order->isPaid(),
             0,
-            Payment::TYPE_CARD
+            $this->getPayment($paymentCollection[0])
         );
 
         $orderDelivery->setClient(
@@ -192,7 +199,7 @@ class KomtetDeliveryD7
             }
         } catch (SdkException $e) {
             $response = $e->getMessage();
-            error_log(sprintf('Îøèáêà ñîçäàíèÿ çàêàçà: %s', $e->getMessage()));
+            error_log(sprintf('˜˜˜˜˜˜ ˜˜˜˜˜˜˜˜ ˜˜˜˜˜˜: %s', $e->getMessage()));
         } finally {
             KomtetDeliveryReportsTable::Update(
                 $kOrderID,
@@ -256,8 +263,8 @@ class KomtetDeliveryD7
     {
         foreach (array('kkd_full_name', 'kkd_phone', 'kkd_address', 'kkd_date', 'kkd_time_start', 'kkd_time_end') as $key) {
             if (empty($customFieldList[$key])) {
-                error_log(sprintf('Äîïîëíèòåëüíîå ïîëå "%s" äëÿ ìîäóëÿ "komtet.delivery" íå óñòàíîâëåíî', $key));
-                Logger::print_log($kOrderID, array('request' => sprintf('Îøèáêà çàïîëíåíèÿ ïîëÿ "%s"', $key)));
+                error_log(sprintf('˜˜˜˜˜˜˜˜˜˜˜˜˜˜ ˜˜˜˜ "%s" ˜˜˜ ˜˜˜˜˜˜ "komtet.delivery" ˜˜ ˜˜˜˜˜˜˜˜˜˜˜', $key));
+                Logger::print_log($kOrderID, array('request' => sprintf('˜˜˜˜˜˜ ˜˜˜˜˜˜˜˜˜˜ ˜˜˜˜ "%s"', $key)));
 
                 return false;
             }
@@ -270,7 +277,7 @@ class KomtetDeliveryD7
     {
         foreach (array('key', 'secret', 'tax_system') as $key) {
             if (empty($options[$key])) {
-                error_log(sprintf('Íàñòðîéêà "%s" äëÿ ìîäóëÿ "komtet.delivery" íå íàéäåíà', $key));
+                error_log(sprintf('˜˜˜˜˜˜˜˜˜ "%s" ˜˜˜ ˜˜˜˜˜˜ "komtet.delivery" ˜˜ ˜˜˜˜˜˜˜', $key));
 
                 return false;
             }
@@ -286,8 +293,8 @@ class KomtetDeliveryD7
                 return true;
             }
         }
-        error_log(sprintf('Âûáðàííûé òèï äîñòàâêè íå óñòàíîâëåí â íàñòðîéêàõ'));
-        Logger::print_log($kOrderID, array('request' => sprintf('Âûáðàííûé òèï äîñòàâêè íå óñòàíîâëåí â íàñòðîéêàõ')));
+        error_log(sprintf('˜˜˜˜˜˜˜˜˜ ˜˜˜ ˜˜˜˜˜˜˜˜ ˜˜ ˜˜˜˜˜˜˜˜˜˜ ˜ ˜˜˜˜˜˜˜˜˜˜'));
+        Logger::print_log($kOrderID, array('request' => sprintf('˜˜˜˜˜˜˜˜˜ ˜˜˜ ˜˜˜˜˜˜˜˜ ˜˜ ˜˜˜˜˜˜˜˜˜˜ ˜ ˜˜˜˜˜˜˜˜˜˜')));
 
         return false;
     }
