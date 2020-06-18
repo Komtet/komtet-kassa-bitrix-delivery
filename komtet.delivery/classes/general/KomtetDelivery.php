@@ -76,6 +76,12 @@ class KomtetDeliveryD7
 
         return $result;
     }
+    
+    protected function getPaymentType($payment)
+    {
+        $paySystem = $payment->getPaySystem();
+        return ($paySystem->isCash()) ? Payment::TYPE_CASH : Payment::TYPE_CARD;
+    }
 
     public function createOrder($orderId)
     {
@@ -114,13 +120,14 @@ class KomtetDeliveryD7
             return false;
         }
 
+        $paymentCollection = $order->getPaymentCollection();
         $orderDelivery = new Order(
             $order->getId(),
             'new',
             $this->taxSystem,
             $order->isPaid(),
             0,
-            Payment::TYPE_CARD
+            $this->getPaymentType($paymentCollection[0])
         );
 
         $orderDelivery->setClient(
