@@ -10,7 +10,7 @@ use Komtet\KassaSdk\Payment;
 use Komtet\KassaSdk\TaxSystem;
 use Komtet\KassaSdk\Vat;
 
-const MEASURE_NAME = 'пїЅпїЅ';
+const MEASURE_NAME = 'шт';
 const PAYSTATUS = 'Y';
 
 class KomtetDelivery
@@ -41,7 +41,7 @@ class KomtetDeliveryD7
         $options = $this->getOptions();
 
         if (!$this->optionsValidate($options)) {
-            error_log('пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ');
+            error_log('Ошибка валидации настроек');
 
             return false;
         }
@@ -53,7 +53,7 @@ class KomtetDeliveryD7
         $this->taxSystem = $options['tax_system'];
         $this->defaultCourier = $options['default_courier'];
 
-        $this->modGroupName = mb_convert_encoding('пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ', LANG_CHARSET, 'WINDOWS-1251');
+        $this->modGroupName = mb_convert_encoding('КОМТЕТ Касса Доставка', LANG_CHARSET, 'WINDOWS-1251');
         $this->orderStatus = $options['order_status'];
         $this->deliveryStatus = $options['delivery_status'];
         $this->deliveryTypes = $options['delivery_types'];
@@ -76,7 +76,7 @@ class KomtetDeliveryD7
 
         return $result;
     }
-    
+
     protected function getPaymentType($payment)
     {
         $paySystem = $payment->getPaySystem();
@@ -97,7 +97,7 @@ class KomtetDeliveryD7
         }
 
         if (!$this->shouldForm) {
-            error_log(sprintf('[Order - %s] пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ', $orderId));
+            error_log(sprintf('[Order - %s] Заказ не создан, флаг генерации не установлен', $orderId));
 
             return false;
         }
@@ -199,7 +199,7 @@ class KomtetDeliveryD7
             }
         } catch (SdkException $e) {
             $response = $e->getMessage();
-            error_log(sprintf('пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ: %s', $e->getMessage()));
+            error_log(sprintf('Ошибка создания заказа: %s', $e->getMessage()));
         } finally {
             KomtetDeliveryReportsTable::Update(
                 $kOrderID,
@@ -263,8 +263,8 @@ class KomtetDeliveryD7
     {
         foreach (array('kkd_full_name', 'kkd_phone', 'kkd_address', 'kkd_date', 'kkd_time_start', 'kkd_time_end') as $key) {
             if (empty($customFieldList[$key])) {
-                error_log(sprintf('пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ "%s" пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ "komtet.delivery" пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ', $key));
-                Logger::print_log($kOrderID, array('request' => sprintf('пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ "%s"', $key)));
+                error_log(sprintf('Дополнительное поле "%s" для модуля "komtet.delivery" не установлено', $key));
+                Logger::print_log($kOrderID, array('request' => sprintf('Ошибка заполнения поля "%s"', $key)));
 
                 return false;
             }
@@ -277,7 +277,7 @@ class KomtetDeliveryD7
     {
         foreach (array('key', 'secret', 'tax_system') as $key) {
             if (empty($options[$key])) {
-                error_log(sprintf('пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ "%s" пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ "komtet.delivery" пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ', $key));
+                error_log(sprintf('Настройка "%s" для модуля "komtet.delivery" не найдена', $key));
 
                 return false;
             }
@@ -293,8 +293,8 @@ class KomtetDeliveryD7
                 return true;
             }
         }
-        error_log(sprintf('пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ'));
-        Logger::print_log($kOrderID, array('request' => sprintf('пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ')));
+        error_log(sprintf('Выбранный тип доставки не установлен в настройках'));
+        Logger::print_log($kOrderID, array('request' => sprintf('Выбранный тип доставки не установлен в настройках')));
 
         return false;
     }
