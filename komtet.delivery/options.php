@@ -8,6 +8,7 @@ use Komtet\KassaSdk\Client;
 use Komtet\KassaSdk\CourierManager;
 use Komtet\KassaSdk\TaxSystem;
 use Bitrix\Sale\Internals\StatusLangTable;
+use Bitrix\Sale\Delivery\Services\Manager;
 
 if (!$USER->IsAdmin()) {
     return;
@@ -142,13 +143,7 @@ if (CModule::IncludeModule('sale')) {
         )
     );
 
-    $deliveryTypes = CSaleDelivery::GetList(
-        array(),
-        array(),
-        false,
-        false,
-        array('ID', 'NAME')
-    );
+    $deliveryTypes = array_map(function ($shipping) {return ['ID' => $shipping['ID'], 'NAME' => $shipping['NAME']];}, Manager::getActiveList());
 
     while ($orderStatus = $orderStatuses->Fetch()) {
         $orderList[$orderStatus['STATUS_ID']] = $orderStatus['NAME'];
@@ -158,13 +153,12 @@ if (CModule::IncludeModule('sale')) {
         $deliveryStatusList[$deliveryStatus['STATUS_ID']] = $deliveryStatus['NAME'];
     }
 
-    $deliveryTypeList[0] = GetMessage('KOMTETDELIVERY_OPTIONS_DEFAULT_NAME');
     $list = json_decode(COption::GetOptionString($moduleId, 'delivery_types'));
     if (is_null($list)) {
         COption::SetOptionString($moduleId, 'delivery_types', json_encode(["0"]));
     }
 
-    while ($deliveryType = $deliveryTypes->Fetch()) {
+    foreach ($deliveryTypes as $deliveryType) {
         $deliveryTypeList[$deliveryType['ID']] = $deliveryType['NAME'];
     }
 
