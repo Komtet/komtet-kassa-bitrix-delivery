@@ -199,30 +199,6 @@ class komtet_delivery extends CModule
             ));
 
             $arFields = array(
-                "FULL_NAME" => array(
-                    "PERSON_TYPE_ID" => $personType["ID"],
-                    "NAME" => GetMessage('PROPERTY_FULL_NAME'),
-                    "TYPE" => "TEXT",
-                    "SORT" => "100",
-                    "PROPS_GROUP_ID" => $groupID,
-                    "CODE" => "kkd_full_name"
-                ),
-                "PHONE" => array(
-                    "PERSON_TYPE_ID" => $personType["ID"],
-                    "NAME" => GetMessage('PROPERTY_PHONE'),
-                    "TYPE" => "TEXT",
-                    "SORT" => "100",
-                    "PROPS_GROUP_ID" => $groupID,
-                    "CODE" => "kkd_phone",
-                ),
-                "EMAIL" => array(
-                    "PERSON_TYPE_ID" => $personType["ID"],
-                    "NAME" => GetMessage('PROPERTY_EMAIL'),
-                    "TYPE" => "TEXT",
-                    "SORT" => "100",
-                    "PROPS_GROUP_ID" => $groupID,
-                    "CODE" => "kkd_email",
-                ),
                 "ADDRESS" => array(
                     "PERSON_TYPE_ID" => $personType["ID"],
                     "NAME" => GetMessage('PROPERTY_ADDRESS'),
