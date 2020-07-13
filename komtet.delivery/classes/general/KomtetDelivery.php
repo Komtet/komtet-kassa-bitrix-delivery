@@ -1,7 +1,8 @@
 <?php
 
 use Bitrix\Sale\Order as OrderTable;
-use Komtet\KassaSdk\Exception\SdkException;
+use Komtet\KassaSdk\Exception\ApiValidationException;
+use Komtet\KassaSdk\Exception\ClientException;
 use Komtet\KassaSdk\Client;
 use Komtet\KassaSdk\Order;
 use Komtet\KassaSdk\OrderManager;
@@ -41,8 +42,6 @@ class KomtetDeliveryD7
         $options = $this->getOptions();
 
         if (!$this->optionsValidate($options)) {
-            error_log('Ошибка валидации настроек');
-
             return false;
         }
         
@@ -81,6 +80,15 @@ class KomtetDeliveryD7
     {
         $paySystem = $payment->getPaySystem();
         return $paySystem->isCash() ? Payment::TYPE_CASH : Payment::TYPE_CARD;
+    }
+
+    protected function getUserInfo($user)
+    {   
+        return array(
+            'FIO' => sprintf('%s %s %s', $user['NAME'], $user['SECOND_NAME'], $user['LAST_NAME']),
+            'EMAIL' => $user['EMAIL'],
+            'PHONE' => $user['PERSONAL_PHONE']
+        );
     }
 
     public function createOrder($orderId)
@@ -130,11 +138,12 @@ class KomtetDeliveryD7
             $this->getPaymentType($paymentCollection[0])
         );
 
+        $userInfo = $this->getUserInfo(CUser::GetByID($order->getUserId())->Fetch());
         $orderDelivery->setClient(
             $customFieldList['kkd_address'],
-            $customFieldList['kkd_phone'],
-            array_key_exists('kkd_email', $customFieldList)? $customFieldList['kkd_email'] : null,
-            $customFieldList['kkd_full_name']
+            $userInfo['PHONE'],
+            $userInfo['EMAIL'],
+            $userInfo['FIO']
         );
 
         $positions = $order->getBasket();
@@ -197,18 +206,22 @@ class KomtetDeliveryD7
             } else {
                 $response = $this->manager->updateOrder($kkd_order['kk_id'], $orderDelivery);
             }
-        } catch (SdkException $e) {
-            $response = $e->getMessage();
-            error_log(sprintf('Ошибка создания заказа: %s', $e->getMessage()));
+        } catch (ApiValidationException $e) {
+            $response = array(
+                "Title" => $e->getTitle(),
+                "Code" => $e->getVLDCode(),
+                "Description" => $e->getDescription()
+            );
+        } catch (ClientException $e) {
+            $response = array("Title" => $e->getMessage());
         } finally {
-            KomtetDeliveryReportsTable::Update(
+            Logger::print_log(
                 $kOrderID,
                 array(
                     'request' => json_encode($orderDelivery->asArray()),
                     'response' => json_encode($response),
                     'kk_id' => (!is_null($kkd_order['kk_id']) && $kkd_order['kk_id'] != 0) ? $kkd_order['kk_id'] : $response['id'],
-                )
-            );
+                ));
         }
     }
 
@@ -261,7 +274,7 @@ class KomtetDeliveryD7
 
     private function customFieldsValidate($customFieldList, $kOrderID)
     {
-        foreach (array('kkd_full_name', 'kkd_phone', 'kkd_address', 'kkd_date', 'kkd_time_start', 'kkd_time_end') as $key) {
+        foreach (array('kkd_date', 'kkd_time_start', 'kkd_time_end', 'kkd_address') as $key) {
             if (empty($customFieldList[$key])) {
                 error_log(sprintf('Дополнительное поле "%s" для модуля "komtet.delivery" не установлено', $key));
                 Logger::print_log($kOrderID, array('request' => sprintf('Ошибка заполнения поля "%s"', $key)));
@@ -309,5 +322,13 @@ class Logger
         }
 
         KomtetDeliveryReportsTable::update($kOrderID, $message);
+    }
+    public static function dump($kOrderID, $data)
+    {
+        $logName = "/bitrix/modules/komtet_delivery.log";
+        $f = fopen($_SERVER['DOCUMENT_ROOT'] . $logName, 'ab');
+        fwrite($f, "OrderID: " . $kOrderID . "\n==\n");
+        fwrite($f, print_r($data, 1) . "\n==\n");
+        fclose($f);
     }
 }
