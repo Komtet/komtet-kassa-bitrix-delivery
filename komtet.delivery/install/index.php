@@ -1,98 +1,103 @@
 <?php
-IncludeModuleLangFile(__FILE__);
 
+IncludeModuleLangFile(__FILE__);
 
 class komtet_delivery extends CModule
 {
-    var $MODULE_ID = 'komtet.delivery';
-    var $MODULE_NAME;
-    var $MODULE_DESCRIPTION;
-    var $MODULE_VERSION;
-    var $MODULE_VERSION_DATE;
-    var $GROUP_NAME;
+    public $MODULE_ID = 'komtet.delivery';
+    public $MODULE_NAME;
+    public $MODULE_DESCRIPTION;
+    public $MODULE_VERSION;
+    public $MODULE_VERSION_DATE;
+    public $GROUP_NAME;
     private $INSTALL_DIR;
 
     public function __construct()
     {
-        $this->MODULE_ID = "komtet.delivery";
+        $this->MODULE_ID = 'komtet.delivery';
         $this->MODULE_NAME = GetMessage('KOMTETDELIVERY_MODULE_NAME');
         $this->MODULE_DESCRIPTION = GetMessage('KOMTETDELIVERY_MODULE_DESCRIPTION');
         $this->PARTNER_NAME = GetMessage('KOMTETDELIVERY_PARTNER_NAME');
         $this->PARTNER_URI = 'https://kassa.komtet.ru';
-        $this->INSTALL_DIR = dirname(__file__);
+        $this->INSTALL_DIR = dirname(__FILE__);
         $this->GROUP_NAME = GetMessage('MOD_GROUP_NAME');
         $arModuleVersion = array();
-        include(realpath(sprintf('%s/version.php', $this->INSTALL_DIR)));
-        if (is_array($arModuleVersion) && array_key_exists("VERSION", $arModuleVersion)) {
-            $this->MODULE_VERSION = $arModuleVersion["VERSION"];
-            $this->MODULE_VERSION_DATE = $arModuleVersion["VERSION_DATE"];
+        include realpath(sprintf('%s/version.php', $this->INSTALL_DIR));
+        if (is_array($arModuleVersion) && array_key_exists('VERSION', $arModuleVersion)) {
+            $this->MODULE_VERSION = $arModuleVersion['VERSION'];
+            $this->MODULE_VERSION_DATE = $arModuleVersion['VERSION_DATE'];
         }
 
         $this->FILES = array(
-            "admin" => array(
-                "FROM" => sprintf('%s/%s', $this->INSTALL_DIR, "admin"),
-                "TO" => sprintf('%s/bitrix/%s', $_SERVER["DOCUMENT_ROOT"], 'admin')
+            'admin' => array(
+                'FROM' => sprintf('%s/%s', $this->INSTALL_DIR, 'admin'),
+                'TO' => sprintf('%s/bitrix/%s', $_SERVER['DOCUMENT_ROOT'], 'admin'),
             ),
-            "tools" => array(
-                "FROM" => sprintf('%s/%s', $this->INSTALL_DIR, "tools"),
-                "TO" => sprintf('%s/%s', $_SERVER["DOCUMENT_ROOT"], 'komtet.delivery')
-            )
+            'tools' => array(
+                'FROM' => sprintf('%s/%s', $this->INSTALL_DIR, 'tools'),
+                'TO' => sprintf('%s/%s', $_SERVER['DOCUMENT_ROOT'], 'komtet.delivery'),
+            ),
         );
     }
 
     public function DoInstall()
     {
         global $APPLICATION;
-        
+
         if (!extension_loaded('curl')) {
-            echo (CAdminMessage::ShowMessage(array(
-                "TYPE" => "ERROR",
-                "MESSAGE" => GetMessage("MOD_INST_ERR"),
-                "DETAILS" => GetMessage("MOD_ERR_CURL_NOT_FOUND"),
-                "HTML" => true
-            )));
+            echo CAdminMessage::ShowMessage(array(
+                'TYPE' => 'ERROR',
+                'MESSAGE' => GetMessage('MOD_INST_ERR'),
+                'DETAILS' => GetMessage('MOD_ERR_CURL_NOT_FOUND'),
+                'HTML' => true,
+            ));
+
             return false;
         }
 
-        if (!IsModuleInstalled("sale")) {
-            echo (CAdminMessage::ShowMessage(array(
-                "TYPE" => "ERROR",
-                "MESSAGE" => GetMessage("MOD_INST_ERR"),
-                "DETAILS" => GetMessage("MOD_ERR_SALE_NOT_FOUND"),
-                "HTML" => true
-            )));
+        if (!IsModuleInstalled('sale')) {
+            echo CAdminMessage::ShowMessage(array(
+                'TYPE' => 'ERROR',
+                'MESSAGE' => GetMessage('MOD_INST_ERR'),
+                'DETAILS' => GetMessage('MOD_ERR_SALE_NOT_FOUND'),
+                'HTML' => true,
+            ));
+
             return false;
         }
 
         if (version_compare(CModule::CreateModuleObject('sale')->MODULE_VERSION, '15.5.0', '<')) {
-            echo (CAdminMessage::ShowMessage(array(
-                "TYPE" => "ERROR",
-                "MESSAGE" => GetMessage("MOD_INST_ERR"),
-                "DETAILS" => GetMessage("MOD_ERR_SALE_UPDATE"),
-                "HTML" => true
-            )));
+            echo CAdminMessage::ShowMessage(array(
+                'TYPE' => 'ERROR',
+                'MESSAGE' => GetMessage('MOD_INST_ERR'),
+                'DETAILS' => GetMessage('MOD_ERR_SALE_UPDATE'),
+                'HTML' => true,
+            ));
+
             return false;
         }
 
         if (IsModuleInstalled($this->MODULE_ID)) {
-            echo (CAdminMessage::ShowMessage(array(
-                "TYPE" => "ERROR",
-                "MESSAGE" => GetMessage("MOD_INST_ERR"),
-                "DETAILS" => GetMessage("MOD_ERR_DELIVERY_IS_INSTALLED"),
-                "HTML" => true
-            )));
+            echo CAdminMessage::ShowMessage(array(
+                'TYPE' => 'ERROR',
+                'MESSAGE' => GetMessage('MOD_INST_ERR'),
+                'DETAILS' => GetMessage('MOD_ERR_DELIVERY_IS_INSTALLED'),
+                'HTML' => true,
+            ));
+
             return false;
         }
 
         if (!$this->DoInstallDB() or !$this->DoInstallFields()) {
             if ($ex = $APPLICATION->GetException()) {
-                echo (CAdminMessage::ShowMessage(array(
-                    "TYPE" => "ERROR",
-                    "MESSAGE" => GetMessage("MOD_INST_ERR"),
-                    "DETAILS" => $ex->GetString(),
-                    "HTML" => true
-                )));
+                echo CAdminMessage::ShowMessage(array(
+                    'TYPE' => 'ERROR',
+                    'MESSAGE' => GetMessage('MOD_INST_ERR'),
+                    'DETAILS' => $ex->GetString(),
+                    'HTML' => true,
+                ));
             }
+
             return false;
         }
 
@@ -107,7 +112,7 @@ class komtet_delivery extends CModule
             'RULE' => 'ORDER_ID=$1',
             'ID' => 'bitrix:komtet.delivery',
             'PATH' => sprintf('/%s/%s', 'komtet.delivery', 'komtet_delivery_done_order.php'),
-            'SORT' => 100
+            'SORT' => 100,
         );
 
         CUrlRewriter::Add($callback_url);
@@ -119,8 +124,8 @@ class komtet_delivery extends CModule
     {
         foreach ($this->FILES as $file) {
             CopyDirFiles(
-                $file["FROM"],
-                $file["TO"],
+                $file['FROM'],
+                $file['TO'],
                 true,
                 true
             );
@@ -134,7 +139,7 @@ class komtet_delivery extends CModule
             COption::RemoveOption($this->MODULE_ID);
 
             UnRegisterModule($this->MODULE_ID);
-            UnRegisterModuleDependences("sale", "OnShipmentAllowDelivery", $this->MODULE_ID, "KomtetDelivery", "handleSalePayOrder");
+            UnRegisterModuleDependences('sale', 'OnShipmentAllowDelivery', $this->MODULE_ID, 'KomtetDelivery', 'handleSalePayOrder');
             $this->DoUninstallDB();
             $this->DoUninstallFiles();
             CUrlRewriter::Delete(array('ID' => 'bitrix:komtet.delivery'));
@@ -145,11 +150,11 @@ class komtet_delivery extends CModule
     {
         foreach ($this->FILES as $file) {
             DeleteDirFiles(
-                $file["FROM"],
-                $file["TO"]
+                $file['FROM'],
+                $file['TO']
             );
         }
-        rmdir($this->FILES["tools"]["TO"]);
+        rmdir($this->FILES['tools']['TO']);
     }
 
     public function DoInstallDB()
@@ -161,6 +166,7 @@ class komtet_delivery extends CModule
             return true;
         }
         $APPLICATION->ThrowException(implode('', $errors));
+
         return false;
     }
 
@@ -174,7 +180,7 @@ class komtet_delivery extends CModule
     {
         global $APPLICATION;
 
-        if (!CModule::IncludeModule("sale")) {
+        if (!CModule::IncludeModule('sale')) {
             return false;
         }
 
@@ -187,15 +193,16 @@ class komtet_delivery extends CModule
         );
 
         if (intval($personTypeList->SelectedRowsCount()) === 0) {
-            $APPLICATION->ThrowException(GetMessage("MOD_ERR_PERSON_NOT_FOUND"));
+            $APPLICATION->ThrowException(GetMessage('MOD_ERR_PERSON_NOT_FOUND'));
+
             return false;
         }
 
         while ($personType = $personTypeList->Fetch()) {
             $groupID = CSaleOrderPropsGroup::Add(array(
-                "PERSON_TYPE_ID" => $personType["ID"],
-                "NAME" => $this->GROUP_NAME,
-                "SORT" => "100",
+                'PERSON_TYPE_ID' => $personType['ID'],
+                'NAME' => $this->GROUP_NAME,
+                'SORT' => '100',
             ));
 
             $arFields = array(
@@ -207,59 +214,69 @@ class komtet_delivery extends CModule
                     "PROPS_GROUP_ID" => $groupID,
                     "CODE" => "kkd_address"
                 ),
-                "DATE" => array(
-                    "PERSON_TYPE_ID" => $personType["ID"],
-                    "NAME" => GetMessage('PROPERTY_DATE'),
-                    "TYPE" => "DATE",
-                    "SORT" => "100",
-                    "PROPS_GROUP_ID" => $groupID,
-                    "CODE" => "kkd_date"
+                'DATE' => array(
+                    'PERSON_TYPE_ID' => $personType['ID'],
+                    'NAME' => GetMessage('PROPERTY_DATE'),
+                    'TYPE' => 'DATE',
+                    'SORT' => '100',
+                    'PROPS_GROUP_ID' => $groupID,
+                    'CODE' => 'kkd_date',
                 ),
-                "TIME_START" => array(
-                    "PERSON_TYPE_ID" => $personType["ID"],
-                    "NAME" => GetMessage('PROPERTY_BEGIN_TIME'),
-                    "TYPE" => "TEXT",
-                    "SORT" => "100",
-                    "PROPS_GROUP_ID" => $groupID,
-                    "CODE" => "kkd_time_start",
-                    "DEFAULT_VALUE" => "00:00",
-                    "SETTINGS" => array(
-                        "MINLENGTH" => "5",
-                        "MAXLENGTH" => "5",
-                        "PATTERN" => "([01]?[0-9]|2[0-3]):[0-5][0-9]"
-                    )
+                'TIME_START' => array(
+                    'PERSON_TYPE_ID' => $personType['ID'],
+                    'NAME' => GetMessage('PROPERTY_BEGIN_TIME'),
+                    'TYPE' => 'TEXT',
+                    'SORT' => '100',
+                    'PROPS_GROUP_ID' => $groupID,
+                    'CODE' => 'kkd_time_start',
+                    'DEFAULT_VALUE' => '00:00',
+                    'SETTINGS' => array(
+                        'MINLENGTH' => '5',
+                        'MAXLENGTH' => '5',
+                        'PATTERN' => '([01]?[0-9]|2[0-3]):[0-5][0-9]',
+                    ),
                 ),
-                "TIME_FINISH" => array(
-                    "PERSON_TYPE_ID" => $personType["ID"],
-                    "NAME" => GetMessage('PROPERTY_END_TIME'),
-                    "TYPE" => "TEXT",
-                    "SORT" => "100",
-                    "PROPS_GROUP_ID" => $groupID,
-                    "CODE" => "kkd_time_end",
-                    "DEFAULT_VALUE" => "23:00",
-                    "SETTINGS" => array(
-                        "MINLENGTH" => "5",
-                        "MAXLENGTH" => "5",
-                        "PATTERN" => "([01]?[0-9]|2[0-3]):[0-5][0-9]"
-                    )
+                'TIME_FINISH' => array(
+                    'PERSON_TYPE_ID' => $personType['ID'],
+                    'NAME' => GetMessage('PROPERTY_END_TIME'),
+                    'TYPE' => 'TEXT',
+                    'SORT' => '100',
+                    'PROPS_GROUP_ID' => $groupID,
+                    'CODE' => 'kkd_time_end',
+                    'DEFAULT_VALUE' => '23:00',
+                    'SETTINGS' => array(
+                        'MINLENGTH' => '5',
+                        'MAXLENGTH' => '5',
+                        'PATTERN' => '([01]?[0-9]|2[0-3]):[0-5][0-9]',
+                    ),
+                ),
+                'COURIER' => array(
+                    'PERSON_TYPE_ID' => $personType['ID'],
+                    'NAME' => GetMessage('PROPERTY_COURIER'),
+                    'TYPE' => 'ENUM',
+                    'SORT' => '100',
+                    'PROPS_GROUP_ID' => $groupID,
+                    'CODE' => 'kkd_courier',
+                    'UTIL' => true,
                 ),
             );
             foreach ($arFields as $arField) {
                 CSaleOrderProps::Add($arField);
             }
         }
+
         return true;
     }
 
     public function DoUninstallFields()
     {
-        if (!CModule::IncludeModule("sale")) {
+        if (!CModule::IncludeModule('sale')) {
             return false;
         }
 
         $groupList = CSaleOrderPropsGroup::GetList(
             array(),
-            array("NAME" => $this->GROUP_NAME),
+            array('NAME' => $this->GROUP_NAME),
             false,
             false,
             array()
@@ -267,15 +284,15 @@ class komtet_delivery extends CModule
         while ($group = $groupList->Fetch()) {
             $propertyList = CSaleOrderProps::GetList(
                 array(),
-                array("PROPS_GROUP_ID" => $group["ID"]),
+                array('PROPS_GROUP_ID' => $group['ID']),
                 false,
                 false,
                 array()
             );
             while ($property = $propertyList->Fetch()) {
-                CSaleOrderProps::Delete($property["ID"]);
+                CSaleOrderProps::Delete($property['ID']);
             }
-            CSaleOrderPropsGroup::Delete($group["ID"]);
+            CSaleOrderPropsGroup::Delete($group['ID']);
         }
     }
 }

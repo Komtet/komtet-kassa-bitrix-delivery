@@ -1,4 +1,5 @@
 <?php
+
 $MESS['KOMTETDELIVERY_PARTNER_NAME'] = 'КОМТЕТ';
 $MESS['KOMTETDELIVERY_MODULE_NAME'] = 'КОМТЕТ Касса Доставка';
 $MESS['KOMTETDELIVERY_MODULE_DESCRIPTION'] = 'Интеграция с сервисом доставки КОМТЕТ Касса Доставка';
@@ -18,3 +19,4 @@ $MESS['PROPERTY_ADDRESS'] = 'Адрес доставки';
 $MESS['PROPERTY_DATE'] = 'Дата доставки';
 $MESS['PROPERTY_BEGIN_TIME'] = 'Время доставки от';
 $MESS['PROPERTY_END_TIME'] = 'Время доставки до';
+$MESS['PROPERTY_COURIER'] = 'Курьер';

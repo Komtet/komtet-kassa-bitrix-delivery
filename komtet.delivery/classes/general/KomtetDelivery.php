@@ -4,6 +4,7 @@ use Bitrix\Sale\Order as OrderTable;
 use Komtet\KassaSdk\Exception\ApiValidationException;
 use Komtet\KassaSdk\Exception\ClientException;
 use Komtet\KassaSdk\Client;
+use Komtet\KassaSdk\CourierManager;
 use Komtet\KassaSdk\Order;
 use Komtet\KassaSdk\OrderManager;
 use Komtet\KassaSdk\OrderPosition;
@@ -13,6 +14,9 @@ use Komtet\KassaSdk\Vat;
 
 const MEASURE_NAME = 'шт';
 const PAYSTATUS = 'Y';
+
+const SHOP_ID_LENGTH = 6;
+const SECRET_KEY_LENGTH = 10;
 
 class KomtetDelivery
 {
@@ -30,12 +34,80 @@ class KomtetDelivery
     }
 }
 
+class KomtetDeliveryCouriers
+{
+    protected $moduleID = 'komtet.delivery';
+
+    public function getCourierList()
+    {
+        $shop_id = COption::GetOptionString($this->moduleID, 'shop_id');
+        $secret_key = COption::GetOptionString($this->moduleID, 'secret_key');
+
+        if ($shop_id && $secret_key && strlen($shop_id) == SHOP_ID_LENGTH && strlen($secret_key) == SECRET_KEY_LENGTH) {
+            $client = new Client($shop_id, $secret_key);
+
+            $courierManager = new CourierManager($client);
+            try {
+                return $courierManager->getCouriers()['couriers'];
+            } catch (Exception $e) {
+                error_log(sprintf('Ошибка получения списка доступных курьеров. Exception: %s', $e));
+            }
+        }
+    }
+
+    public function updateList()
+    {
+        $courier_list = $this->getCourierList();
+
+        $default_courier = COption::GetOptionString($this->moduleID, 'default_courier');
+
+        //группы свойств
+        $groups = CSaleOrderPropsGroup::GetList(
+            array(),
+            array('NAME' => GetMessage('MOD_GROUP_NAME'))
+        );
+        // для каждой группы получаем свойство "Курьер"
+        while ($propsGroup = $groups->Fetch()) {
+            $fields = CSaleOrderProps::GetList(
+                array(),
+                array(
+                    'PROPS_GROUP_ID' => $propsGroup['ID'],
+                    'NAME' => GetMessage('PROPERTY_COURIER'),
+                )
+            );
+            // для каждого свойства устанавливаем курьеров
+            while ($field = $fields->Fetch()) {
+                // чистим поля и дефолтное значение
+                CSaleOrderPropsVariant::DeleteAll($field['ID']);
+                CSaleOrderProps::Update($field['ID'], array('DEFAULT_VALUE' => ''));
+
+                // добавляем курьеров в список
+                foreach ($courier_list as $courier) {
+                    CSaleOrderPropsVariant::Add(
+                        array(
+                            'ORDER_PROPS_ID' => $field['ID'],
+                            'NAME' => mb_convert_encoding($courier['name'], LANG_CHARSET, 'UTF-8'),
+                            'VALUE' => $courier['id'],
+                        )
+                    );
+                }
+                // устанавливаем дефолтного курьера
+                if ($default_courier) {
+                    CSaleOrderProps::Update(
+                        $field['ID'],
+                        array('DEFAULT_VALUE' => $default_courier)
+                    );
+                }
+            }
+        }
+    }
+}
+
 class KomtetDeliveryD7
 {
     protected $manager;
     protected $shouldForm;
     protected $taxSystem;
-    protected $defaultCourier;
 
     public function __construct()
     {
@@ -50,7 +122,6 @@ class KomtetDeliveryD7
         $this->manager = new OrderManager($client);
         $this->shouldForm = $options['should_form'];
         $this->taxSystem = $options['tax_system'];
-        $this->defaultCourier = $options['default_courier'];
 
         $this->modGroupName = mb_convert_encoding('КОМТЕТ Касса Доставка', LANG_CHARSET, 'WINDOWS-1251');
         $this->orderStatus = $options['order_status'];
@@ -67,7 +138,6 @@ class KomtetDeliveryD7
             'secret' => COption::GetOptionString($moduleID, 'secret_key'),
             'should_form' => COption::GetOptionInt($moduleID, 'should_form') == 1,
             'tax_system' => intval(COption::GetOptionInt($moduleID, 'tax_system')),
-            'default_courier' => intval(COption::GetOptionInt($moduleID, 'default_courier')),
             'order_status' => COption::GetOptionString($moduleID, 'order_status'),
             'delivery_status' => COption::GetOptionString($moduleID, 'delivery_status'),
             'delivery_types' => json_decode(COption::GetOptionString($moduleID, 'delivery_types')),
@@ -93,6 +163,19 @@ class KomtetDeliveryD7
 
     public function createOrder($orderId)
     {
+        // проверяем, включен ли плагин
+        if (!$this->shouldForm) {
+            error_log(sprintf('[Order - %s] Заказ не создан, флаг генерации не установлен', $orderId));
+
+            return false;
+        }
+
+        // проверяем, статус отгрузки
+        $order = OrderTable::load($orderId);
+        if (!$order->isAllowDelivery()) {
+            return false;
+        }
+
         $kOrderID = KomtetDeliveryReportsTable::getRow(array(
             'select' => array('*'),
             'filter' => array('order_id' => $orderId),
@@ -102,17 +185,6 @@ class KomtetDeliveryD7
             $kOrderID = KomtetDeliveryReportsTable::add(['order_id' => $orderId])->getId();
         } else {
             $kOrderID = $kOrderID['id'];
-        }
-
-        if (!$this->shouldForm) {
-            error_log(sprintf('[Order - %s] Заказ не создан, флаг генерации не установлен', $orderId));
-
-            return false;
-        }
-
-        $order = OrderTable::load($orderId);
-        if (!$order->isAllowDelivery()) {
-            return false;
         }
 
         $customFields = CSaleOrderPropsValue::GetOrderProps($orderId);
@@ -183,8 +255,8 @@ class KomtetDeliveryD7
             }
         }
 
-        if (!$this->defaultCourier == 0) {
-            $orderDelivery->setCourierId($this->defaultCourier);
+        if ($customFieldList['kkd_courier']) {
+            $orderDelivery->setCourierId(intval($customFieldList['kkd_courier']));
         }
         if ($order->getField('USER_DESCRIPTION')) {
             $orderDelivery->setDescription(mb_convert_encoding($order->getField('USER_DESCRIPTION'), 'UTF-8', LANG_CHARSET));

@@ -4,8 +4,6 @@ $moduleId = 'komtet.delivery';
 
 use Bitrix\Main\Loader;
 use Bitrix\Main\Localization\Loc;
-use Komtet\KassaSdk\Client;
-use Komtet\KassaSdk\CourierManager;
 use Komtet\KassaSdk\TaxSystem;
 use Bitrix\Sale\Internals\StatusLangTable;
 use Bitrix\Sale\Delivery\Services\Manager;
@@ -23,6 +21,8 @@ $form = new CAdminForm('tabControl', array(array(
     'TAB' => GetMessage('MAIN_TAB_SET'),
     'TITLE' => GetMessage('MAIN_TAB_TITLE_SET'),
 )));
+
+$couriers_controller = new KomtetDeliveryCouriers();
 
 if ($REQUEST_METHOD == 'POST' && check_bitrix_sessid()) {
     $data = array(
@@ -48,6 +48,8 @@ if ($REQUEST_METHOD == 'POST' && check_bitrix_sessid()) {
             COption::SetOptionString($moduleId, $key, json_encode($value));
         }
     }
+
+    $couriers_controller->updateList();
 }
 $queryData = http_build_query(array(
     'lang' => LANGUAGE_ID,
@@ -187,40 +189,22 @@ if (CModule::IncludeModule('sale')) {
     );
 }
 
-if (
-    COption::GetOptionString($moduleId, 'shop_id') &&
-    COption::GetOptionString($moduleId, 'secret_key') &&
-    strlen(COption::GetOptionString($moduleId, 'shop_id')) >= 2 &&
-    strlen(COption::GetOptionString($moduleId, 'secret_key')) >= 2
-) {
-    $client = new Client(
-        COption::GetOptionString($moduleId, 'shop_id'),
-        COption::GetOptionString($moduleId, 'secret_key')
+$kk_couriers = $couriers_controller->getCourierList();
+if ($kk_couriers) {
+    $couriersList[0] = GetMessage('KOMTETDELIVERY_OPTIONS_DEFAULT_NAME');
+
+    $encoding = (LANG_CHARSET === 'windows-1251') ? 'CP1251' : 'UTF-8';
+    foreach ($kk_couriers as $kk_courier) {
+        $couriersList[$kk_courier['id']] = mb_convert_encoding($kk_courier['name'], LANG_CHARSET, 'UTF-8');
+    }
+
+    $form->AddDropDownField(
+        'DEFAULT_COURIER',
+        GetMessage('KOMTETDELIVERY_OPTIONS_DEFAULT_COURIER'),
+        true,
+        $couriersList,
+        COption::GetOptionString($moduleId, 'default_courier')
     );
-
-    $courierManager = new CourierManager($client);
-    try {
-        $kk_couriers = $courierManager->getCouriers()['couriers'];
-    } catch (Exception $e) {
-        error_log(sprintf('Ошибка получения списка доступных курьеров. Exception: %s', $e));
-    }
-
-    if ($kk_couriers) {
-        $couriersList[0] = GetMessage('KOMTETDELIVERY_OPTIONS_DEFAULT_NAME');
-
-        $encoding = (LANG_CHARSET === 'windows-1251') ? 'CP1251' : 'UTF-8';
-        foreach ($kk_couriers as $kk_courier) {
-            $couriersList[$kk_courier['id']] = mb_convert_encoding($kk_courier['name'], LANG_CHARSET, 'UTF-8');
-        }
-
-        $form->AddDropDownField(
-            'DEFAULT_COURIER',
-            GetMessage('KOMTETDELIVERY_OPTIONS_DEFAULT_COURIER'),
-            true,
-            $couriersList,
-            COption::GetOptionString($moduleId, 'default_courier')
-        );
-    }
 }
 
 $form->Buttons(array(
