@@ -4,7 +4,8 @@ use Bitrix\Sale\Order as OrderTable;
 use Komtet\KassaSdk\Exception\ApiValidationException;
 use Komtet\KassaSdk\Exception\ClientException;
 use Komtet\KassaSdk\Client;
-use Komtet\KassaSdk\CourierManager;
+use Komtet\KassaSdk\EmployeeManager;
+use Komtet\KassaSdk\EmployeeType;
 use Komtet\KassaSdk\Order;
 use Komtet\KassaSdk\OrderManager;
 use Komtet\KassaSdk\OrderPosition;
@@ -17,6 +18,7 @@ const PAYSTATUS = 'Y';
 
 const SHOP_ID_LENGTH = 6;
 const SECRET_KEY_LENGTH = 10;
+
 
 class KomtetDelivery
 {
@@ -46,9 +48,9 @@ class KomtetDeliveryCouriers
         if ($shop_id && $secret_key && strlen($shop_id) == SHOP_ID_LENGTH && strlen($secret_key) == SECRET_KEY_LENGTH) {
             $client = new Client($shop_id, $secret_key);
 
-            $courierManager = new CourierManager($client);
+            $employeeManager = new EmployeeManager($client);
             try {
-                return $courierManager->getCouriers()['couriers'];
+                return $employeeManager->getEmployees('0', '100', EmployeeType::COURIER)['account_employees'];
             } catch (Exception $e) {
                 error_log(sprintf('Ошибка получения списка доступных курьеров. Exception: %s', $e));
             }
@@ -116,7 +118,7 @@ class KomtetDeliveryD7
         if (!$this->optionsValidate($options)) {
             return false;
         }
-        
+
         $client = new Client($options['key'], $options['secret']);
 
         $this->manager = new OrderManager($client);
@@ -153,7 +155,7 @@ class KomtetDeliveryD7
     }
 
     protected function getUserInfo($user)
-    {   
+    {
         return array(
             'FIO' => sprintf('%s %s %s', $user['NAME'], $user['SECOND_NAME'], $user['LAST_NAME']),
             'EMAIL' => $user['EMAIL'],
@@ -220,21 +222,25 @@ class KomtetDeliveryD7
 
         $positions = $order->getBasket();
         foreach ($positions as $position) {
-            $itemVatRate = Vat::RATE_NO;
-            if ($this->taxSystem == TaxSystem::COMMON) {
-                $itemVatRate = strval(floatval($position->getField('VAT_RATE')) * 100);
-            }
 
-            $orderDelivery->addPosition(new OrderPosition([
-                'oid' => $position->getField('ID'),
-                'name' => mb_convert_encoding($position->getField('NAME'), 'UTF-8', LANG_CHARSET),
-                'price' => round($position->getPrice(), 2),
-                'quantity' => $position->getQuantity(),
-                'total' => round($position->getFinalPrice(), 2),
-                'vat' => $itemVatRate,
-                'measure_name' => mb_convert_encoding($position->getField('MEASURE_NAME'), 'UTF-8', LANG_CHARSET),
-            ]));
+            $positionID = $position->getField('ID');
+
+            if ($position->getField('MARKING_CODE_GROUP')) {
+                // Если позиция с маркировкой, то разбиваем позицию на единицы
+                $nomenclature_codes = $this->getNomenclatureCodes($positionID);
+
+                for ($item = 0; $item < $position->getQuantity(); $item++) {
+                    $order_position = $this->generatePosition($position);
+                    $nomenclature_code = array_shift($nomenclature_codes);
+                    $order_position->setNomenclatureCode($nomenclature_code);
+                    $orderDelivery->addPosition($order_position);
+                }
+            } else {
+                // Если нет маркировок, то проводим как обычную позицию
+                $orderDelivery->addPosition($this->generatePosition($position, $position->getQuantity()));
+            }
         }
+
 
         foreach ($shipmentCollection as $shipment) {
             if ($shipment->getPrice() > 0.0) {
@@ -273,7 +279,7 @@ class KomtetDeliveryD7
 
         $kkd_order = KomtetDeliveryReportsTable::getByID($kOrderID)->Fetch();
         try {
-            if (is_null($kkd_order['kk_id']) || $kkd_order['kk_id'] == 0 ) {
+            if (is_null($kkd_order['kk_id']) || $kkd_order['kk_id'] == 0) {
                 $response = $this->manager->createOrder($orderDelivery);
             } else {
                 $response = $this->manager->updateOrder($kkd_order['kk_id'], $orderDelivery);
@@ -293,8 +299,51 @@ class KomtetDeliveryD7
                     'request' => json_encode($orderDelivery->asArray()),
                     'response' => json_encode($response),
                     'kk_id' => (!is_null($kkd_order['kk_id']) && $kkd_order['kk_id'] != 0) ? $kkd_order['kk_id'] : $response['id'],
-                ));
+                )
+            );
         }
+    }
+
+    private function generatePosition($position, $quantity = 1)
+    {
+        /**
+         * Получение позиции заказа
+         * @param array $position Позиция в заказе Bitrix
+         * @param int|float $quantity Кол-во товара в позиции
+         */
+
+        $itemVatRate = Vat::RATE_NO;
+        if ($this->taxSystem == TaxSystem::COMMON) {
+            $itemVatRate = strval(floatval($position->getField('VAT_RATE')) * 100);
+        }
+
+        return new OrderPosition([
+            'oid' => $position->getField('ID'),
+            'name' => mb_convert_encoding($position->getField('NAME'), 'UTF-8', LANG_CHARSET),
+            'price' => round($position->getPrice(), 2),
+            'quantity' =>  $quantity,
+            'total' => round($position->getFinalPrice(), 2),
+            'vat' => $itemVatRate,
+            'measure_name' => mb_convert_encoding($position->getField('MEASURE_NAME'), 'UTF-8', LANG_CHARSET),
+        ]);
+    }
+
+    public function getNomenclatureCodes($position_id)
+    {
+        /**
+         * Получение списка маркировок
+         * @param int $position_id Идентификатор позиции в заказе
+         */
+        global $DB;
+
+        $strSql = "SELECT MARKING_CODE FROM b_sale_store_barcode WHERE BASKET_ID = " . $position_id;
+        $dbRes = $DB->Query($strSql, false);
+
+        $nomenclature_codes = [];
+        while ($nomenclature_code = $dbRes->Fetch()) {
+            array_push($nomenclature_codes, $nomenclature_code['MARKING_CODE']);
+        }
+        return $nomenclature_codes;
     }
 
     public function doneOrder($orderId)
