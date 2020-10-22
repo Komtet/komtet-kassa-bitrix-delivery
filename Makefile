@@ -1,9 +1,24 @@
 SHELL:=/bin/bash
+ARGS=`arg="$(filter-out $@,$(MAKECMDGOALS))" && echo $${arg:-${1}}`
+VERSION=$(shell grep -o '^[0-9]\+\.[0-9]\+\.[0-9]\+' CHANGELOG.rst | head -n1)
+VCS_BRANCH=$(shell git branch | grep ^* | awk '{ print $$2 }')
+FORCE=$(shell (re=\\bforce\\b; [[ $(call ARGS,'') =~ $$re ]]) && echo "yes" || echo '')
+# Colors
+Color_Off=\033[0m
+Cyan=\033[1;36m
+Red=\033[1;31m
+
+version:  ## Версия проекта
+	@echo $(VERSION)
 
 help:
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST) | sort
+	
+allow:
+	@[ "$(VCS_BRANCH)" = 'master' -o "$(FORCE)" = 'yes' ] || \
+		(echo -e '${Red}Данная операция может быть выполнена только из ветки ${Cyan}master${Color_Off}'; exit 1)
 
-update:  ## Создать архив
+update:  ## Обновить плагин
 	@tar -czvf komtet.delivery.tar.gz komtet.delivery/ && \
 	 cp komtet.delivery.tar.gz docker_env/php/bitrix/modules/ && \
 	 rm -R komtet.delivery.tar.gz &&\
@@ -21,7 +36,7 @@ start: ## Запустить контейнер
 stop: ## Остановить контейнер
 	@cd docker_env/ && docker stop bitrix
 
-release:  ## Архивировать для загрузки в маркет
+release:  ## Архивировать для загрузки в маркет (для первой публикации в маркет)
 	@cp -ar komtet.delivery .last_version && \
 	tar\
 	 --exclude='.last_version/lib/komtet-kassa-php-sdk/.*'\
@@ -30,5 +45,11 @@ release:  ## Архивировать для загрузки в маркет
 	 -czvf .last_version.tar.gz .last_version/ && \
 	rm -rf .last_version
 
-.PHONY: help update build start stop release
+tag: allow  ## Собрать tag
+	@git tag -a $(VERSION) -m $(VERSION)
+
+create_dists:   ## Создать архивы для загрузок
+	@helpers/create_dists.bash $(VERSION)
+
+.PHONY: help update build start stop release tag create_dists
 .DEFAULT_GOAL := help

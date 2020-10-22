@@ -1,2 +1,3 @@
 docker_env/php
 .last_version.tar.gz
+dist/**
