@@ -36,19 +36,10 @@ start: ## Запустить контейнер
 stop: ## Остановить контейнер
 	@cd docker_env/ && docker stop bitrix
 
-release:  ## Архивировать для загрузки в маркет (для первой публикации в маркет)
-	@cp -ar komtet.delivery .last_version && \
-	tar\
-	 --exclude='.last_version/lib/komtet-kassa-php-sdk/.*'\
-	 --exclude='.last_version/lib/komtet-kassa-php-sdk/docker_env'\
-	 --exclude='.last_version/lib/komtet-kassa-php-sdk/tests'\
-	 -czvf .last_version.tar.gz .last_version/ && \
-	rm -rf .last_version
-
 tag: allow  ## Собрать tag
 	@git tag -a $(VERSION) -m $(VERSION)
 
-create_dists:   ## Создать архивы для загрузок
+release:   ## Создать архивы для загрузок
 	@helpers/create_dists.bash $(VERSION)
 
 .PHONY: help update build start stop release tag create_dists
