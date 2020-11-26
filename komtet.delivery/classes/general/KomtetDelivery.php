@@ -361,7 +361,7 @@ class KomtetDeliveryD7
             if (!$ID) {
                 KomtetKassaReportsTable::add([
                     'order_id' => $orderId,
-                    'state' => 0,
+                    'state' => 'done',
                 ]);
             }
         }

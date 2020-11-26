@@ -1,5 +1,9 @@
 <?php
 
+define('NO_KEEP_STATISTIC', 'Y');
+define('NO_AGENT_STATISTIC', 'Y');
+define('NOT_CHECK_PERMISSIONS', true);
+
 require $_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/main/include/prolog_before.php';
 require $_SERVER["DOCUMENT_ROOT"] . "/bitrix/modules/komtet.delivery/include.php";
 
