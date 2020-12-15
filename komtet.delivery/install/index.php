@@ -11,6 +11,10 @@ class komtet_delivery extends CModule
     public $MODULE_VERSION_DATE;
     public $GROUP_NAME;
     private $INSTALL_DIR;
+    const DEFAULT_VALUES = array(
+        'kkd_time_start' => '00:00',
+        'kkd_time_end' => '23:00'
+    );
 
     public function __construct()
     {
@@ -314,11 +318,7 @@ class komtet_delivery extends CModule
         
         $selectOptions = array();
         for ($i = $startTime; $i <= $endTime; $i++) {
-            if ($i > 9) {
-                $time = "{$i}:00";
-            } else {
-                $time = "0{$i}:00";
-            }
+            $time = ($i > 9) ? "{$i}:00" : "0{$i}:00";
             $selectOptions[] = $time;
         }
 
@@ -346,18 +346,10 @@ class komtet_delivery extends CModule
             }
             
             // Установка значения по умолчанию
-            if ($field['CODE'] == 'kkd_time_end') {
-                CSaleOrderProps::Update(
-                    $field['ID'],
-                    array('DEFAULT_VALUE' => '23:00')
-                );
-            } else {
-                CSaleOrderProps::Update(
-                    $field['ID'],
-                    array('DEFAULT_VALUE' => '00:00')
-                );
-            }
-
+            CSaleOrderProps::Update(
+                $field['ID'],
+                array('DEFAULT_VALUE' => self::DEFAULT_VALUES[$field['CODE']])
+            );
         }
     }
 }
