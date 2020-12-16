@@ -11,6 +11,10 @@ class komtet_delivery extends CModule
     public $MODULE_VERSION_DATE;
     public $GROUP_NAME;
     private $INSTALL_DIR;
+    const DEFAULT_VALUES = array(
+        'kkd_time_start' => '00:00',
+        'kkd_time_end' => '23:00'
+    );
 
     public function __construct()
     {
@@ -225,30 +229,20 @@ class komtet_delivery extends CModule
                 'TIME_START' => array(
                     'PERSON_TYPE_ID' => $personType['ID'],
                     'NAME' => GetMessage('PROPERTY_BEGIN_TIME'),
-                    'TYPE' => 'TEXT',
+                    'TYPE' => 'ENUM',
                     'SORT' => '100',
                     'PROPS_GROUP_ID' => $groupID,
                     'CODE' => 'kkd_time_start',
                     'DEFAULT_VALUE' => '00:00',
-                    'SETTINGS' => array(
-                        'MINLENGTH' => '5',
-                        'MAXLENGTH' => '5',
-                        'PATTERN' => '([01]?[0-9]|2[0-3]):[0-5][0-9]',
-                    ),
                 ),
                 'TIME_FINISH' => array(
                     'PERSON_TYPE_ID' => $personType['ID'],
                     'NAME' => GetMessage('PROPERTY_END_TIME'),
-                    'TYPE' => 'TEXT',
+                    'TYPE' => 'ENUM',
                     'SORT' => '100',
                     'PROPS_GROUP_ID' => $groupID,
                     'CODE' => 'kkd_time_end',
                     'DEFAULT_VALUE' => '23:00',
-                    'SETTINGS' => array(
-                        'MINLENGTH' => '5',
-                        'MAXLENGTH' => '5',
-                        'PATTERN' => '([01]?[0-9]|2[0-3]):[0-5][0-9]',
-                    ),
                 ),
                 'COURIER' => array(
                     'PERSON_TYPE_ID' => $personType['ID'],
@@ -263,6 +257,27 @@ class komtet_delivery extends CModule
             foreach ($arFields as $arField) {
                 CSaleOrderProps::Add($arField);
             }
+
+            // Получаем поля времени начала и окончания доставки           
+            $getStartTimeField = CSaleOrderProps::GetList(
+                array(),
+                array(
+                    'PROPS_GROUP_ID' => $groupID,
+                    'NAME' => GetMessage('PROPERTY_BEGIN_TIME'),
+                )
+            );
+            
+            $getEndTimeField = CSaleOrderProps::GetList(
+                array(),
+                array(
+                    'PROPS_GROUP_ID' => $groupID,
+                    'NAME' => GetMessage('PROPERTY_END_TIME'),
+                )
+            );
+            
+            $this->AddValuesForSelectField($getStartTimeField);
+            $this->AddValuesForSelectField($getEndTimeField);
+
         }
 
         return true;
@@ -293,6 +308,48 @@ class komtet_delivery extends CModule
                 CSaleOrderProps::Delete($property['ID']);
             }
             CSaleOrderPropsGroup::Delete($group['ID']);
+        }
+    }
+
+    public function CreateTimeTable() 
+    {
+        $startTime = 0;
+        $endTime = 23;
+        
+        $selectOptions = array();
+        for ($i = $startTime; $i <= $endTime; $i++) {
+            $time = ($i > 9) ? "{$i}:00" : "0{$i}:00";
+            $selectOptions[] = $time;
+        }
+
+        return $selectOptions;
+    }
+
+    public function AddValuesForSelectField($typeField) 
+    {
+        //Массив выбора значений (00:00, 01:00 ...)
+        $timeTable = $this->CreateTimeTable();
+
+        while ($field = $typeField->Fetch()) {
+            CSaleOrderPropsVariant::DeleteAll($field['ID']);
+            CSaleOrderProps::Update($field['ID'], array('DEFAULT_VALUE' => ''));
+
+            //Заполнение поля значениями
+            foreach ($timeTable as $timeItem) {
+                CSaleOrderPropsVariant::Add(
+                    array(
+                        'ORDER_PROPS_ID' => $field['ID'],
+                        'NAME' => $timeItem,
+                        'VALUE' => $timeItem,
+                    )
+                );
+            }
+            
+            // Установка значения по умолчанию
+            CSaleOrderProps::Update(
+                $field['ID'],
+                array('DEFAULT_VALUE' => self::DEFAULT_VALUES[$field['CODE']])
+            );
         }
     }
 }
