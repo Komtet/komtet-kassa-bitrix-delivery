@@ -156,11 +156,24 @@ class KomtetDeliveryD7
 
     protected function getUserInfo($user)
     {
-        return array(
+        $result = [
             'FIO' => sprintf('%s %s %s', $user['NAME'], $user['SECOND_NAME'], $user['LAST_NAME']),
             'EMAIL' => $user['EMAIL'],
-            'PHONE' => $user['PERSONAL_PHONE']
-        );
+        ];
+
+        if (!empty($user['PERSONAL_PHONE'])) {
+            $result['PHONE'] = $user['PERSONAL_PHONE'];
+        } else {
+            $user_id = $user['ID'];
+            $PhoneAuthTable = \Bitrix\Main\UserPhoneAuthTable::getList($parameters = array(
+                'filter'=>array('USER_ID' => $user_id) // выборка пользователя с подтвержденным номером телефона для регистрации
+             ));
+            $currentUserInfo = $PhoneAuthTable->fetch();
+
+            $result['PHONE'] = $currentUserInfo['PHONE_NUMBER'];
+        }
+        
+        return $result;
     }
 
     public function createOrder($orderId)

@@ -18,23 +18,21 @@ allow:
 	@[ "$(VCS_BRANCH)" = 'master' -o "$(FORCE)" = 'yes' ] || \
 		(echo -e '${Red}Данная операция может быть выполнена только из ветки ${Cyan}master${Color_Off}'; exit 1)
 
-update:  ## Обновить плагин
-	@tar -czvf komtet.delivery.tar.gz komtet.delivery/ && \
-	 cp komtet.delivery.tar.gz docker_env/php/bitrix/modules/ && \
-	 rm -R komtet.delivery.tar.gz &&\
-	 cd docker_env/php/bitrix/modules/ &&\
-	 sudo tar xvzf komtet.delivery.tar.gz
+build:  ## Собрать контейнер
+	@sudo chmod -R 777 php/ &&\
+	 docker-compose build
 
-build: ## Создать контейнер
-	@cd docker_env/ && \
-	 docker run -d --name bitrix -p 5666:80 -p 2222:22 -p 443:443 -p 8893:8893 -p 8894:8894 -p 3306:3306 -v `pwd`/php:/home/bitrix/www -e BVAT_MEM=524288 -e TIMEZONE="Europe/Moscow" constb/bitrix-env && \
-	 sudo chmod -R 777 php/
+start:  ## Запустить контейнер
+	@docker-compose up -d web
 
-start: ## Запустить контейнер
-	@cd docker_env/ && docker start bitrix
+stop:  ## Остановить контейнер
+	@docker-compose down
 
-stop: ## Остановить контейнер
-	@cd docker_env/ && docker stop bitrix
+update_kassa:  ##Обновить плагин для фискализации
+	@cp -r -f komtet-kassa-bitrix/komtet.kassa php/bitrix/modules/ && cp -r -f komtet-kassa-bitrix/lib php/bitrix/modules/komtet.kassa
+
+update_delivery:  ##Обновить плагин для доставки
+	@cp -r -f komtet.delivery php/bitrix/modules/
 
 tag: allow  ## Собрать tag
 	@git tag -a $(VERSION) -m $(VERSION)
