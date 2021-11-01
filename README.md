@@ -16,7 +16,7 @@ git clone --recursive git@github.com:Komtet/komtet-kassa-bitrix-delivery.git
 ```
 * Добавить bitrix_nginx.cfg в sites-enabled nginx
 ```sh
-sudo cp [путь_до_проекта]/komtet-kassa-bitrix-delivery/bitrix.cfg /etc/nginx/sites-enabled
+sudo cp [путь_до_проекта]/komtet-kassa-bitrix-delivery/bitrix_nginx.cfg /etc/nginx/sites-enabled
 ```
 ```
 * Перезапустить nginx
@@ -26,7 +26,7 @@ sudo nginx -t
 ```sh
 sudo nginx -s reload
 ```
-* Создать папку php
+* Создать папку php в папке komtet-kassa-bitrix-delivery
 ```sh
 mkdir php
 ```
@@ -66,8 +66,8 @@ make start
 make update_delivery
 ```
 
-## Установка / обновление плагина Комтет Кассы для обычной фискализации
-* Если так же необходимо установить плагин Комтет Кассы для обычной фискализации, то клонируем репозиторий с плагином в папку проекта:
+## Установка / обновление плагина Комтет Кассы для фискализации чеков
+* Если так же необходимо установить плагин Комтет Кассы для обычной фискализации, то клонируем репозиторий рядом с папкой плагина курьерского приложения:
 ```sh
 git clone --recursive git@github.com:Komtet/komtet-kassa-bitrix.git
 ```
