@@ -57,7 +57,7 @@ cd $DIST_MARKET_DIR && tar -czf $VERSION_TAR $VERSION_DIR && rm -rf $VERSION_DIR
 cd $DIST_GITHUB_DIR && \
    tar \
      --exclude=$PROJECT_DIR'/lib/komtet-kassa-php-sdk/.*' \
-	  --exclude=$PROJECT_DIR'/lib/komtet-kassa-php-sdk/docker_env' \
+	  --exclude=$PROJECT_DIR'/lib/komtet-kassa-php-sdk' \
 	  --exclude=$PROJECT_DIR'/lib/komtet-kassa-php-sdk/tests' \
      -czf $PROJECT_TAR $PROJECT_DIR && \
    rm -rf $PROJECT_DIR && cd -
