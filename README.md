@@ -40,9 +40,14 @@ sudo chmod -R 777 php
 ```sh
 make build
 ```
-* Запустить проект
+* Запустить проект с php7
 ```sh
-make start
+make start_web7
+```
+
+* Запустить проект с php8
+```sh
+make start_web8
 ```
 * Проект будет доступен по адресу: http://bitrix.localhost.ru
 
