@@ -218,8 +218,8 @@ class KomtetDeliveryD7
         $paymentCollection = $order->getPaymentCollection();
         $orderDelivery = new Order(
             $order->getId(),
-            'new',
             $this->taxSystem,
+            'new',
             $order->isPaid(),
             0,
             $this->getPaymentType($paymentCollection[0])
@@ -326,7 +326,7 @@ class KomtetDeliveryD7
          */
 
         $itemVatRate = Vat::RATE_NO;
-        if ($this->taxSystem == TaxSystem::COMMON) {
+        if (floatval($position->getField('VAT_RATE'))) {
             $itemVatRate = strval(floatval($position->getField('VAT_RATE')) * 100);
         }
 
