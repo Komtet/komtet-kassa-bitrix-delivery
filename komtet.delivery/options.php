@@ -4,7 +4,7 @@ $moduleId = 'komtet.delivery';
 
 use Bitrix\Main\Loader;
 use Bitrix\Main\Localization\Loc;
-use Komtet\KassaSdk\TaxSystem;
+use Komtet\KassaSdk\v1\TaxSystem;
 use Bitrix\Sale\Internals\StatusLangTable;
 use Bitrix\Sale\Delivery\Services\Manager;
 
@@ -102,7 +102,6 @@ $form->AddDropDownField(
         TaxSystem::COMMON => GetMessage('KOMTETDELIVERY_OPTIONS_TS_COMMON'),
         TaxSystem::SIMPLIFIED_IN => GetMessage('KOMTETDELIVERY_OPTIONS_TS_SIMPLIFIED_IN'),
         TaxSystem::SIMPLIFIED_IN_OUT => GetMessage('KOMTETDELIVERY_OPTIONS_TS_SIMPLIFIED_IN_OUT'),
-        TaxSystem::UTOII => GetMessage('KOMTETDELIVERY_OPTIONS_TS_UTOII'),
         TaxSystem::UST => GetMessage('KOMTETDELIVERY_OPTIONS_TS_UST'),
         TaxSystem::PATENT => GetMessage('KOMTETDELIVERY_OPTIONS_TS_PATENT'),
     ),

@@ -3,15 +3,15 @@
 use Bitrix\Sale\Order as OrderTable;
 use Komtet\KassaSdk\Exception\ApiValidationException;
 use Komtet\KassaSdk\Exception\ClientException;
-use Komtet\KassaSdk\Client;
-use Komtet\KassaSdk\EmployeeManager;
-use Komtet\KassaSdk\EmployeeType;
-use Komtet\KassaSdk\Order;
-use Komtet\KassaSdk\OrderManager;
-use Komtet\KassaSdk\OrderPosition;
-use Komtet\KassaSdk\Payment;
-use Komtet\KassaSdk\TaxSystem;
-use Komtet\KassaSdk\Vat;
+use Komtet\KassaSdk\v1\Client;
+use Komtet\KassaSdk\v1\EmployeeManager;
+use Komtet\KassaSdk\v1\EmployeeType;
+use Komtet\KassaSdk\v1\Order;
+use Komtet\KassaSdk\v1\OrderManager;
+use Komtet\KassaSdk\v1\OrderPosition;
+use Komtet\KassaSdk\v1\Payment;
+use Komtet\KassaSdk\v1\TaxSystem;
+use Komtet\KassaSdk\v1\Vat;
 
 const MEASURE_NAME = 'רע';
 const PAYSTATUS = 'Y';
