@@ -20,7 +20,7 @@ allow:
 
 build:  ## Собрать контейнер
 	@sudo chmod -R 777 php/ &&\
-	 docker-compose build
+	 docker-compose build --no-cache
 
 start_web7:  ## Запустить контейнер с php7
 	@docker-compose up -d web7

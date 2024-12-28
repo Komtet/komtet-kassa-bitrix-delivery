@@ -258,7 +258,7 @@ class komtet_delivery extends CModule
                 CSaleOrderProps::Add($arField);
             }
 
-            // РџРѕР»СѓС‡Р°РµРј РїРѕР»СЏ РІСЂРµРјРµРЅРё РЅР°С‡Р°Р»Р° Рё РѕРєРѕРЅС‡Р°РЅРёСЏ РґРѕСЃС‚Р°РІРєРё           
+            // Получаем поля времени начала и окончания доставки           
             $getStartTimeField = CSaleOrderProps::GetList(
                 array(),
                 array(
@@ -327,14 +327,14 @@ class komtet_delivery extends CModule
 
     public function AddValuesForSelectField($typeField) 
     {
-        //РњР°СЃСЃРёРІ РІС‹Р±РѕСЂР° Р·РЅР°С‡РµРЅРёР№ (00:00, 01:00 ...)
+        //Массив выбора значений (00:00, 01:00 ...)
         $timeTable = $this->CreateTimeTable();
 
         while ($field = $typeField->Fetch()) {
             CSaleOrderPropsVariant::DeleteAll($field['ID']);
             CSaleOrderProps::Update($field['ID'], array('DEFAULT_VALUE' => ''));
 
-            //Р—Р°РїРѕР»РЅРµРЅРёРµ РїРѕР»СЏ Р·РЅР°С‡РµРЅРёСЏРјРё
+            //Заполнение поля значениями
             foreach ($timeTable as $timeItem) {
                 CSaleOrderPropsVariant::Add(
                     array(
@@ -345,7 +345,7 @@ class komtet_delivery extends CModule
                 );
             }
             
-            // РЈСЃС‚Р°РЅРѕРІРєР° Р·РЅР°С‡РµРЅРёСЏ РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ
+            // Установка значения по умолчанию
             CSaleOrderProps::Update(
                 $field['ID'],
                 array('DEFAULT_VALUE' => self::DEFAULT_VALUES[$field['CODE']])
