@@ -54,13 +54,7 @@ cp -r $PROJECT_DIR'/.' "$DIST_GITHUB_DIR/$PROJECT_DIR"
 
 #=================== Архивация ==========================
 cd $DIST_MARKET_DIR && tar -czf $VERSION_TAR $VERSION_DIR && rm -rf $VERSION_DIR && cd -
-cd $DIST_GITHUB_DIR && \
-   tar \
-     --exclude=$PROJECT_DIR'/lib/komtet-kassa-php-sdk/.*' \
-	  --exclude=$PROJECT_DIR'/lib/komtet-kassa-php-sdk' \
-	  --exclude=$PROJECT_DIR'/lib/komtet-kassa-php-sdk/tests' \
-     -czf $PROJECT_TAR $PROJECT_DIR && \
-   rm -rf $PROJECT_DIR && cd -
+cd $DIST_GITHUB_DIR && tar -czf $PROJECT_TAR $PROJECT_DIR && rm -rf $PROJECT_DIR && cd -
 #=========================================================
 
 echo -e "${CYAN}Сборка обновлений для загрузок завершена${COLOR_OFF}\n"
