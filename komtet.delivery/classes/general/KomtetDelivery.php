@@ -3,6 +3,7 @@
 use Bitrix\Sale\Order as OrderTable;
 use Komtet\KassaSdk\Exception\ApiValidationException;
 use Komtet\KassaSdk\Exception\ClientException;
+use Komtet\KassaSdk\v1\CalculationSubject;
 use Komtet\KassaSdk\v1\Client;
 use Komtet\KassaSdk\v1\EmployeeManager;
 use Komtet\KassaSdk\v1\EmployeeType;
@@ -261,6 +262,7 @@ class KomtetDeliveryD7
                 if ($this->taxSystem === TaxSystem::COMMON and method_exists($shipment, 'getVatRate')) {
                     $shipmentVatRate = strval(floatval($shipment->getVatRate()) * 100);
                 }
+                $shipmentType = CalculationSubject::SERVICE;
 
                 $orderDelivery->addPosition(new OrderPosition([
                     'oid' => $shipment->getDeliveryId(),
@@ -269,7 +271,8 @@ class KomtetDeliveryD7
                     'quantity' => 1,
                     'total' => round($shipment->getPrice(), 2),
                     'vat' => $shipmentVatRate,
-                    'measure_name' => mb_convert_encoding(MEASURE_NAME, 'UTF-8', LANG_CHARSET),
+                    'type' => $shipmentType,
+                    'measure_name' => mb_convert_encoding(MEASURE_NAME, 'UTF-8', 'Windows-1251'),
                 ]));
             }
         }
