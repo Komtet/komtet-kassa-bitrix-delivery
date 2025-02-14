@@ -328,6 +328,7 @@ class KomtetDeliveryD7
          * @param int|float $quantity Кол-во товара в позиции
          */
 
+        $itemTotal = round(($position->getPrice() * $quantity), 2);
         $itemVatRate = Vat::RATE_NO;
         if (floatval($position->getField('VAT_RATE'))) {
             $itemVatRate = strval(floatval($position->getField('VAT_RATE')) * 100);
@@ -338,7 +339,7 @@ class KomtetDeliveryD7
             'name' => mb_convert_encoding($position->getField('NAME'), 'UTF-8', LANG_CHARSET),
             'price' => round($position->getPrice(), 2),
             'quantity' =>  $quantity,
-            'total' => round($position->getFinalPrice(), 2),
+            'total' => $itemTotal,
             'vat' => $itemVatRate,
             'measure_name' => mb_convert_encoding($position->getField('MEASURE_NAME'), 'UTF-8', LANG_CHARSET),
         ]);
