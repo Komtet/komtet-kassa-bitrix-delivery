@@ -177,6 +177,34 @@ class KomtetDeliveryD7
         return $result;
     }
 
+    protected function getOrderProperty($orderId, $propertyCode)
+    {
+        $propertyCollection = \Bitrix\Sale\Order::load($orderId)->getPropertyCollection();
+
+        foreach ($propertyCollection as $property) {
+            if ($property->getField('CODE') === $propertyCode) {
+                $value = $property->getValue();
+                if (!empty($value)) {
+                    return $value;
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Убираем из телефона все, кроме цифр и символа '+' в начале номера, если он есть.
+     * Для телефона, который начинается на 7 без '+' добавляем '+' в начало.
+     */
+    protected function formatPhoneNumber($phoneNumber) {
+        $phoneNumber = preg_replace('/[^0-9+]/', '', $phoneNumber);
+        if (substr($phoneNumber, 0, 1) == "7") {
+            $phoneNumber = "+" . $phoneNumber;
+        }
+
+        return $phoneNumber;
+    }
+
     public function createOrder($orderId)
     {
         // проверяем, включен ли плагин
@@ -227,9 +255,11 @@ class KomtetDeliveryD7
         );
 
         $userInfo = $this->getUserInfo(CUser::GetByID($order->getUserId())->Fetch());
+        $orderUserPhone = $this->getOrderProperty($orderId, 'PHONE');
+        $phoneForDelivery = $this->formatPhoneNumber(!empty($orderUserPhone) ? $orderUserPhone : $userInfo['PHONE']);
         $orderDelivery->setClient(
             $customFieldList['kkd_address'],
-            $userInfo['PHONE'],
+            $phoneForDelivery,
             $userInfo['EMAIL'],
             $userInfo['FIO']
         );
