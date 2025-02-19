@@ -61,12 +61,18 @@ $items = KomtetDeliveryReportsTable::getList(array(
 ));
 
 while ($item = $items->fetch()) {
+    $request = json_decode($item['request'], true);
+    $response = json_decode($item['response'], true);
+
+    $request = json_encode($request, JSON_UNESCAPED_UNICODE);
+    $response = json_encode($response, JSON_UNESCAPED_UNICODE);
+
     $list->AddRow('rowid', array(
         'id' => $item['id'],
         'order_id' => $item['order_id'],
         'kk_id' => $item['kk_id'],
-        'request' => $item['request'],
-        'response' => $item['response'],
+        'request' => $request,
+        'response' => $response,
     ));
 }
 

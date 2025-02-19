@@ -3,6 +3,7 @@
 use Bitrix\Sale\Order as OrderTable;
 use Komtet\KassaSdk\Exception\ApiValidationException;
 use Komtet\KassaSdk\Exception\ClientException;
+use Komtet\KassaSdk\v1\CalculationSubject;
 use Komtet\KassaSdk\v1\Client;
 use Komtet\KassaSdk\v1\EmployeeManager;
 use Komtet\KassaSdk\v1\EmployeeType;
@@ -176,6 +177,34 @@ class KomtetDeliveryD7
         return $result;
     }
 
+    protected function getOrderProperty($orderId, $propertyCode)
+    {
+        $propertyCollection = \Bitrix\Sale\Order::load($orderId)->getPropertyCollection();
+
+        foreach ($propertyCollection as $property) {
+            if ($property->getField('CODE') === $propertyCode) {
+                $value = $property->getValue();
+                if (!empty($value)) {
+                    return $value;
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Убираем из телефона все, кроме цифр и символа '+' в начале номера, если он есть.
+     * Для телефона, который начинается на 7 без '+' добавляем '+' в начало.
+     */
+    protected function formatPhoneNumber($phoneNumber) {
+        $phoneNumber = preg_replace('/[^0-9+]/', '', $phoneNumber);
+        if (substr($phoneNumber, 0, 1) == "7") {
+            $phoneNumber = "+" . $phoneNumber;
+        }
+
+        return $phoneNumber;
+    }
+
     public function createOrder($orderId)
     {
         // проверяем, включен ли плагин
@@ -226,9 +255,11 @@ class KomtetDeliveryD7
         );
 
         $userInfo = $this->getUserInfo(CUser::GetByID($order->getUserId())->Fetch());
+        $orderUserPhone = $this->getOrderProperty($orderId, 'PHONE');
+        $phoneForDelivery = $this->formatPhoneNumber(!empty($orderUserPhone) ? $orderUserPhone : $userInfo['PHONE']);
         $orderDelivery->setClient(
             $customFieldList['kkd_address'],
-            $userInfo['PHONE'],
+            $phoneForDelivery,
             $userInfo['EMAIL'],
             $userInfo['FIO']
         );
@@ -261,6 +292,7 @@ class KomtetDeliveryD7
                 if ($this->taxSystem === TaxSystem::COMMON and method_exists($shipment, 'getVatRate')) {
                     $shipmentVatRate = strval(floatval($shipment->getVatRate()) * 100);
                 }
+                $shipmentType = CalculationSubject::SERVICE;
 
                 $orderDelivery->addPosition(new OrderPosition([
                     'oid' => $shipment->getDeliveryId(),
@@ -269,7 +301,8 @@ class KomtetDeliveryD7
                     'quantity' => 1,
                     'total' => round($shipment->getPrice(), 2),
                     'vat' => $shipmentVatRate,
-                    'measure_name' => mb_convert_encoding(MEASURE_NAME, 'UTF-8', LANG_CHARSET),
+                    'type' => $shipmentType,
+                    'measure_name' => mb_convert_encoding(MEASURE_NAME, 'UTF-8', 'Windows-1251'),
                 ]));
             }
         }
@@ -325,6 +358,7 @@ class KomtetDeliveryD7
          * @param int|float $quantity Кол-во товара в позиции
          */
 
+        $itemTotal = round(($position->getPrice() * $quantity), 2);
         $itemVatRate = Vat::RATE_NO;
         if (floatval($position->getField('VAT_RATE'))) {
             $itemVatRate = strval(floatval($position->getField('VAT_RATE')) * 100);
@@ -335,7 +369,7 @@ class KomtetDeliveryD7
             'name' => mb_convert_encoding($position->getField('NAME'), 'UTF-8', LANG_CHARSET),
             'price' => round($position->getPrice(), 2),
             'quantity' =>  $quantity,
-            'total' => round($position->getFinalPrice(), 2),
+            'total' => $itemTotal,
             'vat' => $itemVatRate,
             'measure_name' => mb_convert_encoding($position->getField('MEASURE_NAME'), 'UTF-8', LANG_CHARSET),
         ]);
