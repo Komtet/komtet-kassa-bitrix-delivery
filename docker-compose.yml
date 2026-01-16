@@ -9,10 +9,23 @@ services:
       MYSQL_DATABASE: test_db
       MYSQL_USER: devuser
       MYSQL_PASSWORD: devpass
+      PHP_MEMORY_LIMIT: 2024M
+      PHP_MAX_EXECUTION_TIME: 0
+      PHP_MAX_INPUT_VARS: 20000
     volumes:
       - ./data/mysql:/var/lib/mysql
     ports:
       - '9906:3306'
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    ports:
+      - "8080:80"
+    environment:
+      PMA_HOST: db
+      PMA_PORT: 3306
+    depends_on:
+      - db
 
   web_8_2:
     build:
@@ -30,27 +43,11 @@ services:
     stdin_open: true
     tty: true
 
-  web_8_1:
+web_8_1:
     build:
       context: .
       target: php_8_1
     container_name: php_8_1
-    depends_on:
-      - db
-    volumes:
-      - ./php/:/var/www/html/
-    ports:
-      - '5666:80'
-    links:
-      - db:mysql
-    stdin_open: true
-    tty: true
-
-  web7:
-    build:
-      context: .
-      target: php7
-    container_name: web7
     depends_on:
       - db
     volumes:
