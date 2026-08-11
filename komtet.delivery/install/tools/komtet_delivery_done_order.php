@@ -9,15 +9,26 @@ require $_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/komtet.delivery/include.php
 
 const MODULE_ID = 'komtet.delivery';
 
+function get_headers(): array
+{
+    $headers = [];
+    foreach ($_SERVER as $key => $value) {
+        if (strpos($key, 'HTTP_') === 0) {
+            $headers[$key] = $value;
+        }
+    }
+    return $headers;
+}
+
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
     exit();
 }
 
-$requestHeaders = getallheaders();
+$requestHeaders = get_headers();
 $requestData = file_get_contents('php://input');
 
-$requestSignature = $requestHeaders['X-HMAC-Signature'] ?? '';
+$requestSignature = $_SERVER['HTTP_X_HMAC_SIGNATURE'] ?? '';
 
 $orderBody = json_decode($requestData, true);
 $callbackUrl = $orderBody['callback_url'];
@@ -33,10 +44,10 @@ CEventLog::Add([
     'AUDIT_TYPE_ID' => 'WEBHOOK_DEBUG',
     'MODULE_ID'     => MODULE_ID,
     'ITEM_ID'       => $_GET['ORDER_ID'],
-    'DESCRIPTION'   => 'КомтетКасса: аудит отчета о доставке заказа\n' .
-                       ($isSignatureValid ? 'Подпись валидна, обработка заказа' : 'Подпись не валидна, выход') . '\n' .
-                       'Headers: ' . print_r($requestHeaders, true) . '\n' .
-                       'RAW input: ' . $requestData
+    'DESCRIPTION'   => "КомтетКасса: аудит отчета о доставке заказа\n" .
+                       ($isSignatureValid ? "Подпись валидна, обработка заказа" : "Подпись не валидна, выход") . "\n" .
+                       "Headers: " . print_r($requestHeaders, true) . "\n" .
+                       "RAW input: " . htmlspecialchars($requestData, ENT_QUOTES, 'UTF-8')
 ]);
 
 if (!$isSignatureValid) {
