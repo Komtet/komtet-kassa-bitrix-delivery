@@ -38,13 +38,24 @@ if ($REQUEST_METHOD == 'POST' && check_bitrix_sessid()) {
     foreach ($data as $key => $type) {
         $value = filter_input(INPUT_POST, strtoupper($key));
         if ($type == 'string') {
+            $value = strip_tags(trim((string)$value));
             COption::SetOptionString($moduleId, $key, $value);
         } elseif ($type == 'bool') {
-            COption::SetOptionInt($moduleId, $key, $value === null ? 0 : 1);
+            $value = filter_var(filter_input(INPUT_POST, strtoupper($key)), FILTER_VALIDATE_BOOLEAN);
+            COption::SetOptionInt($moduleId, $key, $value ? 1 : 0);
         } elseif ($type == 'integer') {
+            $value = filter_var($value, FILTER_VALIDATE_INT);
+            if ($value === false) {
+                $value = null;
+            }
             COption::SetOptionInt($moduleId, $key, $value);
         } elseif ($type == 'array') {
             $value = filter_input(INPUT_POST, strtoupper($key), FILTER_DEFAULT, FILTER_FORCE_ARRAY);
+            array_walk_recursive($value, function(&$item) {
+                if (is_string($item)) {
+                    $item = strip_tags(trim($item));
+                }
+            });
             COption::SetOptionString($moduleId, $key, json_encode($value));
         }
     }
@@ -144,7 +155,10 @@ if (CModule::IncludeModule('sale')) {
         )
     );
 
-    $deliveryTypes = array_map(function ($shipping) {return ['ID' => $shipping['ID'], 'NAME' => $shipping['NAME']];}, Manager::getActiveList());
+    $deliveryTypes = array_map(
+        function ($shipping) {return ['ID' => $shipping['ID'], 'NAME' => $shipping['NAME']];},
+        Manager::getActiveList()
+    );
 
     while ($orderStatus = $orderStatuses->Fetch()) {
         $orderList[$orderStatus['STATUS_ID']] = $orderStatus['NAME'];
@@ -154,9 +168,17 @@ if (CModule::IncludeModule('sale')) {
         $deliveryStatusList[$deliveryStatus['STATUS_ID']] = $deliveryStatus['NAME'];
     }
 
-    $list = json_decode(COption::GetOptionString($moduleId, 'delivery_types'));
-    if (is_null($list)) {
-        COption::SetOptionString($moduleId, 'delivery_types', json_encode(["0"]));
+    // Валидация списка выбранных способов доставки, сохранение их
+    $raw_delivery_types = json_decode(COption::GetOptionString($moduleId, 'delivery_types'));
+    if (in_array($raw_delivery_types, [false, '', null], true)) {
+        $selectedDeliveryTypesIds = ["0"];
+        COption::SetOptionString($moduleId, 'delivery_types', json_encode($selectedDeliveryTypesIds));
+    } else {
+        $selectedDeliveryTypesIds = json_decode($raw_delivery_types, true);
+        if (json_last_error() !== JSON_ERROR_NONE || $selectedDeliveryTypesIds === null) {
+            $selectedDeliveryTypesIds = ["0"];
+            COption::SetOptionString($moduleId, 'delivery_types', json_encode($selectedDeliveryTypesIds));
+        }
     }
 
     foreach ($deliveryTypes as $deliveryType) {
@@ -184,7 +206,7 @@ if (CModule::IncludeModule('sale')) {
         'DELIVERY_TYPES[]',
         GetMessage('KOMTETDELIVERY_OPTIONS_DELIVERY_TYPES'),
         $deliveryTypeList,
-        json_decode(COption::GetOptionString($moduleId, 'delivery_types'))
+        $selectedDeliveryTypesIds
     );
 }
 
