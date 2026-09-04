@@ -141,50 +141,13 @@ function AddMultiSelectField($form, $id, $content, $arSelect, $value)
 if (CModule::IncludeModule('sale')) {
     $orderStatuses = StatusLangTable::getList(
         array(
-            'select' => array('*'),
+            'select' => array('STATUS_ID', 'NAME'),
             'filter' => array('STATUS.TYPE' => 'O'),
-            'select' => array('STATUS_ID', 'NAME'),
         )
     );
-
-    $deliveryStatuses = StatusLangTable::getList(
-        array(
-            'select' => array('*'),
-            'filter' => array('STATUS.TYPE' => 'D'),
-            'select' => array('STATUS_ID', 'NAME'),
-        )
-    );
-
-    $deliveryTypes = array_map(
-        function ($shipping) {return ['ID' => $shipping['ID'], 'NAME' => $shipping['NAME']];},
-        Manager::getActiveList()
-    );
-
     while ($orderStatus = $orderStatuses->Fetch()) {
         $orderList[$orderStatus['STATUS_ID']] = $orderStatus['NAME'];
     }
-
-    while ($deliveryStatus = $deliveryStatuses->Fetch()) {
-        $deliveryStatusList[$deliveryStatus['STATUS_ID']] = $deliveryStatus['NAME'];
-    }
-
-    // Валидация списка выбранных способов доставки, сохранение их
-    $raw_delivery_types = json_decode(COption::GetOptionString($moduleId, 'delivery_types'));
-    if (in_array($raw_delivery_types, [false, '', null], true)) {
-        $selectedDeliveryTypesIds = ["0"];
-        COption::SetOptionString($moduleId, 'delivery_types', json_encode($selectedDeliveryTypesIds));
-    } else {
-        $selectedDeliveryTypesIds = json_decode($raw_delivery_types, true);
-        if (json_last_error() !== JSON_ERROR_NONE || $selectedDeliveryTypesIds === null) {
-            $selectedDeliveryTypesIds = ["0"];
-            COption::SetOptionString($moduleId, 'delivery_types', json_encode($selectedDeliveryTypesIds));
-        }
-    }
-
-    foreach ($deliveryTypes as $deliveryType) {
-        $deliveryTypeList[$deliveryType['ID']] = $deliveryType['NAME'];
-    }
-
     $form->AddDropDownField(
         'ORDER_STATUS',
         GetMessage('KOMTETDELIVERY_OPTIONS_ORDER_STATUS'),
@@ -193,6 +156,15 @@ if (CModule::IncludeModule('sale')) {
         COption::GetOptionString($moduleId, 'order_status')
     );
 
+    $deliveryStatuses = StatusLangTable::getList(
+        array(
+            'select' => array('STATUS_ID', 'NAME'),
+            'filter' => array('STATUS.TYPE' => 'D'),
+        )
+    );
+    while ($deliveryStatus = $deliveryStatuses->Fetch()) {
+        $deliveryStatusList[$deliveryStatus['STATUS_ID']] = $deliveryStatus['NAME'];
+    }
     $form->AddDropDownField(
         'DELIVERY_STATUS',
         GetMessage('KOMTETDELIVERY_OPTIONS_DELIVERY_STATUS'),
@@ -201,6 +173,28 @@ if (CModule::IncludeModule('sale')) {
         COption::GetOptionString($moduleId, 'delivery_status')
     );
 
+    $deliveryTypes = array_map(
+        function ($shipping) {
+            return ['ID' => $shipping['ID'], 'NAME' => $shipping['NAME']];
+        },
+        Manager::getActiveList()
+    );
+    // Валидация списка выбранных способов доставки, сохранение их
+    $rawDeliveryTypes = COption::GetOptionString($moduleId, 'delivery_types');
+    $deliveryTypesSelected = json_decode($rawDeliveryTypes);
+    if (in_array($deliveryTypesSelected, [false, '', null], true)) {
+        $selectedDeliveryTypesIds = ["0"];
+        COption::SetOptionString($moduleId, 'delivery_types', json_encode($selectedDeliveryTypesIds));
+    } else {
+        $selectedDeliveryTypesIds = $deliveryTypesSelected;
+        if (json_last_error() !== JSON_ERROR_NONE || $selectedDeliveryTypesIds === null) {
+            $selectedDeliveryTypesIds = ["0"];
+            COption::SetOptionString($moduleId, 'delivery_types', json_encode($selectedDeliveryTypesIds));
+        }
+    }
+    foreach ($deliveryTypes as $deliveryType) {
+        $deliveryTypeList[$deliveryType['ID']] = $deliveryType['NAME'];
+    }
     AddMultiSelectField(
         $form,
         'DELIVERY_TYPES[]',
